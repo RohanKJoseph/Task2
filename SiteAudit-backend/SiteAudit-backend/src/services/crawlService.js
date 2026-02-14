@@ -414,3 +414,7 @@ export function getIssueDetails(issueId) {
 
   return issue;
 }
+
+// At the bottom of crawlService.js
+addSite({ name: "CodeDesign Webs", url: "https://codedesign.ai" });
+addSite({ name: "Rohan's Portfolio", url: "https://rohan.dev" });

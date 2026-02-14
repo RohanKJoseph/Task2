@@ -1,4 +1,3 @@
-// src/layouts/DashboardLayout.jsx
 import { AppSidebar } from './sideBar'
 import { TopNavbar } from './navBar'
 import SitesBody from './p1Body'
@@ -13,8 +12,6 @@ export function DashboardLayout({ children }) {
           <AppSidebar />
         </div>
           <SitesBody />
-          
-         
       </main>
     </div>
   )
