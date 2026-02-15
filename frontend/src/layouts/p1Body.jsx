@@ -12,10 +12,15 @@ import {
   TableRow 
 } from '../component/catalyst-ui/table'
 import { useSites } from '../hooks/useSites'
+import { useAppStore } from '../stores/useAppStore'
+import AddSiteDialog from './AddSiteDialog'
+import IssueSettingsDialog from './IssueSettingsDialog'
 
 export default function SitesBody() {
   // FIX 1: Hook must be called INSIDE the component function
   const { sites, isLoading, startCrawl } = useSites();
+  const toggleIssueSettings = useAppStore((s) => s.toggleIssueSettings)
+  const toggleAddSite = useAppStore((s) => s.toggleAddSite)
 
   // Handle loading state to prevent "sites is undefined" errors
   if (isLoading) return <div className="p-24">Loading sites...</div>
@@ -35,8 +40,8 @@ export default function SitesBody() {
         </div>
         
         <div className="flex items-center gap-3">
-          <Button color="dark">Issue Settings</Button>
-          <Button color="dark">Add New Site</Button>
+          <Button color="dark" onClick={() => toggleIssueSettings(true)}>Issue Settings</Button>
+          <Button color="dark" onClick={() => toggleAddSite(true)}>Add New Site</Button>
         </div>
       </div>
 
@@ -70,12 +75,24 @@ export default function SitesBody() {
                 </Badge>
               </TableCell>
               <TableCell>
-                <HealthScoreCircle score={site.healthScore} />
+                <HealthScoreCircle score={Number.isFinite(site.healthScore) ? site.healthScore : 0} />
               </TableCell>
-              <TableCell>{site.urlsCrawled}</TableCell>
+
+              <TableCell>
+                {site.urlsCrawled == null
+                  ? '-'
+                  : typeof site.urlsCrawled === 'number'
+                    ? new Intl.NumberFormat().format(site.urlsCrawled)
+                    : (site.urlsCrawled.total || site.urlsCrawled.internal || site.urlsCrawled.resources)
+                      ? `${new Intl.NumberFormat().format(site.urlsCrawled.total ?? 0)} \u00A0` +
+                        `(internal: ${site.urlsCrawled.internal ?? 0}, resources: ${site.urlsCrawled.resources ?? 0})`
+                      : String(site.urlsCrawled)
+                }
+              </TableCell>
+
               <TableCell className="text-red-600 font-bold">{site.errorsCount}</TableCell>
               <TableCell className="text-right">
-                <Button outline onClick={() => startCrawl(site.id)}>
+                <Button color="dark" onClick={() => startCrawl(site.id)}>
                   Crawl now
                 </Button>
               </TableCell>
@@ -83,6 +100,9 @@ export default function SitesBody() {
           ))}
         </TableBody>
       </Table>
+
+      <AddSiteDialog />
+      <IssueSettingsDialog />
     </div>
   )
 }

@@ -416,5 +416,5 @@ export function getIssueDetails(issueId) {
 }
 
 // At the bottom of crawlService.js
-addSite({ name: "CodeDesign Webs", url: "https://codedesign.ai" });
-addSite({ name: "Rohan's Portfolio", url: "https://rohan.dev" });
+// addSite({ name: "CodeDesign Webs", url: "https://codedesign.ai" });
+// addSite({ name: "Rohan's Portfolio", url: "https://rohan.dev" });
