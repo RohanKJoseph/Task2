@@ -3,7 +3,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sitesApi } from '../services/api';
 
 export function useSite(siteId) {
-  return useQuery(['site', siteId], () => sitesApi.getById(siteId), { enabled: !!siteId });
+  return useQuery({
+    queryKey: ['site', siteId],
+    queryFn: () => sitesApi.getById(siteId),
+    enabled: !!siteId
+  });
 }
 
 export function useCreateSite() {

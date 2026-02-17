@@ -25,7 +25,8 @@ export const crawlsApi = {
   getById: (crawlId) => apiClient.get(`/crawls/${crawlId}`).then(unwrap),
   getIssues: (crawlId, params = {}) => apiClient.get(`/crawls/${crawlId}/issues`, { params }).then(unwrap),
   getIssue: (crawlId, issueId) => apiClient.get(`/crawls/${crawlId}/issues/${issueId}`).then(unwrap),
-  history: (siteId, params = {}) => apiClient.get(`/crawls/history/${siteId}`, { params }).then(unwrap)
+  history: (siteId, params = {}) => apiClient.get(`/crawls/history/${siteId}`, { params }).then(unwrap),
+  fixIssues: (crawlId) => apiClient.post(`/crawls/${crawlId}/fix-ai`).then(unwrap)
 };
 
 export const issueTypesApi = {

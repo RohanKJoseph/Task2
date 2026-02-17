@@ -350,6 +350,36 @@ export function stopCrawl(crawlId) {
 }
 
 /**
+ * Fix all issues for a crawl (AI simulation)
+ */
+export function fixCrawlIssues(crawlId) {
+  const crawl = storage.crawls.find(c => c.id === crawlId);
+  if (!crawl) {
+    throw new Error('Crawl not found');
+  }
+
+  storage.issues = storage.issues.filter(i => i.crawlId !== crawlId);
+
+  crawl.totalIssues = 0;
+  crawl.errorsCount = 0;
+  crawl.warningsCount = 0;
+  crawl.noticesCount = 0;
+  crawl.pagesWithErrors = 0;
+  crawl.pagesWithoutErrors = crawl.internalPages || crawl.urlsCrawled;
+  crawl.healthScore = 100;
+
+  const site = storage.sites.find(s => s.id === crawl.siteId);
+  if (site) {
+    site.healthScore = crawl.healthScore;
+    site.errorsCount = 0;
+    site.warningsCount = 0;
+    site.noticesCount = 0;
+  }
+
+  return crawl;
+}
+
+/**
  * Get issues for a crawl with filtering
  */
 export function getIssuesForCrawl(crawlId, filters = {}) {

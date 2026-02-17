@@ -11,6 +11,7 @@ import {
   TableHeader, 
   TableRow 
 } from '../component/catalyst-ui/table'
+import { useNavigate } from 'react-router-dom'
 import { useSites } from '../hooks/useSites'
 import { useAppStore } from '../stores/useAppStore'
 import AddSiteDialog from './AddSiteDialog'
@@ -19,8 +20,15 @@ import IssueSettingsDialog from './IssueSettingsDialog'
 export default function SitesBody() {
   // FIX 1: Hook must be called INSIDE the component function
   const { sites, isLoading, startCrawl } = useSites();
+  const navigate = useNavigate()
   const toggleIssueSettings = useAppStore((s) => s.toggleIssueSettings)
   const toggleAddSite = useAppStore((s) => s.toggleAddSite)
+  const setSelectedSite = useAppStore((s) => s.setSelectedSite)
+
+  const handleOpenSite = (siteId) => {
+    setSelectedSite(siteId)
+    navigate(`/sites/${siteId}`)
+  }
 
   // Handle loading state to prevent "sites is undefined" errors
   if (isLoading) return <div className="p-24">Loading sites...</div>
@@ -63,8 +71,15 @@ export default function SitesBody() {
             <TableRow key={site.id}>
               {/* FIX 2: Ensure TableCell count matches TableHeader count */}
               <TableCell className="font-medium">
-                <div>{site.name}</div>
-                <div className="text-xs text-zinc-500">{site.url}</div>
+                <div className='text-stone-800'>{site.name}</div>
+                {/* <div className="text-xs text-zinc-500">{site.url}</div> */}
+                <button
+                  type="button"
+                  onClick={() => handleOpenSite(site.id)}
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  open
+                </button>
               </TableCell>
               <TableCell className="text-zinc-500">
                 {site.lastCrawl ? new Date(site.lastCrawl).toLocaleDateString() : '-'}
@@ -78,7 +93,7 @@ export default function SitesBody() {
                 <HealthScoreCircle score={Number.isFinite(site.healthScore) ? site.healthScore : 0} />
               </TableCell>
 
-              <TableCell>
+              <TableCell className="text-zinc-500"> 
                 {site.urlsCrawled == null
                   ? '-'
                   : typeof site.urlsCrawled === 'number'
@@ -88,7 +103,8 @@ export default function SitesBody() {
                         `(internal: ${site.urlsCrawled.internal ?? 0}, resources: ${site.urlsCrawled.resources ?? 0})`
                       : String(site.urlsCrawled)
                 }
-              </TableCell>
+          
+                   </TableCell>
 
               <TableCell className="text-red-600 font-bold">{site.errorsCount}</TableCell>
               <TableCell className="text-right">

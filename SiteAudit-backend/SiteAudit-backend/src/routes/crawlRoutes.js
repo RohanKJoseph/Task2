@@ -56,6 +56,28 @@ router.post('/:crawlId/stop', (req, res) => {
 });
 
 /**
+ * POST /api/crawls/:crawlId/fix-ai
+ * Simulate fixing all issues using AI
+ */
+router.post('/:crawlId/fix-ai', (req, res) => {
+  try {
+    const { crawlId } = req.params;
+    const result = crawlService.fixCrawlIssues(crawlId);
+
+    res.json({
+      success: true,
+      data: result,
+      message: 'Issues fixed successfully'
+    });
+  } catch (error) {
+    res.status(404).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
  * GET /api/crawls/:crawlId
  * Get crawl details with issues
  */
