@@ -17,6 +17,23 @@ import { useAppStore } from '../stores/useAppStore'
 import AddSiteDialog from './AddSiteDialog'
 import IssueSettingsDialog from './IssueSettingsDialog'
 
+function formatLastCrawlDate(dateString) {
+  if (!dateString) return '-';
+  const date = new Date(dateString);
+  const month = date.toLocaleDateString('en-US', { month: 'short' });
+  const day = date.getDate();
+  const year = date.getFullYear();
+  return `${month} ${day}, ${year}`;
+}
+
+function getStatusLabel(status) {
+  if (status === 'completed') return 'Completed';
+  if (status === 'not_crawled') return 'Not Crawled';
+  if (status === 'failed') return 'Failed';
+  if (status === 'crawling') return 'Crawling';
+  return status;
+}
+
 export default function SitesBody() {
   // FIX 1: Hook must be called INSIDE the component function
   const { sites, isLoading, startCrawl } = useSites();
@@ -34,7 +51,7 @@ export default function SitesBody() {
   if (isLoading) return <div className="p-24">Loading sites...</div>
 
   return (
-    <div className="p-24 w-screen">
+    <div className="p-24 w-full max-w-none">
       {/* --- Header Section --- */}
       <div className="flex items-end justify-between">
         <div className="flex-1 max-w-lg">
@@ -82,15 +99,20 @@ export default function SitesBody() {
                 </button>
               </TableCell>
               <TableCell className="text-zinc-500">
-                {site.lastCrawl ? new Date(site.lastCrawl).toLocaleDateString() : '-'}
+                {formatLastCrawlDate(site.lastCrawl)}
               </TableCell>
               <TableCell>
-                <Badge color={site.status === 'completed' ? 'green' : 'zinc'}>
-                  {site.status}
+                <Badge color={
+                  site.status === 'completed' ? 'green' : 
+                  site.status === 'failed' ? 'red' : 
+                  site.status === 'crawling' ? 'blue' : 
+                  'zinc'
+                }>
+                  {getStatusLabel(site.status)}
                 </Badge>
               </TableCell>
               <TableCell>
-                <HealthScoreCircle score={Number.isFinite(site.healthScore) ? site.healthScore : 0} />
+                <HealthScoreCircle score={site.healthScore ?? 0} />
               </TableCell>
 
               <TableCell className="text-zinc-500"> 
@@ -108,9 +130,30 @@ export default function SitesBody() {
 
               <TableCell className="text-red-600 font-bold">{site.errorsCount}</TableCell>
               <TableCell className="text-right">
-                <Button color="dark" onClick={() => startCrawl(site.id)}>
-                  Crawl now
-                </Button>
+                {site.status === 'crawling' ? (
+                  <Button color="dark" onClick={() => {/* stop crawl logic */}}>
+                    <svg className="w-4 h-4 mr-2" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M5.28 4.22a.75.75 0 00-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 101.06 1.06L8 9.06l2.72 2.72a.75.75 0 101.06-1.06L9.06 8l2.72-2.72a.75.75 0 00-1.06-1.06L8 6.94 5.28 4.22z" />
+                    </svg>
+                    Stop Crawling
+                  </Button>
+                ) : site.status === 'failed' ? (
+                  <Button color="dark" onClick={() => startCrawl(site.id)}>
+                    <svg className="w-4 h-4 mr-2" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
+                    </svg>
+                    <span className="text-red-600">Try Crawling Again</span>
+                  </Button>
+                ) : (
+                  <Button color="dark" onClick={() => startCrawl(site.id)}>
+                    <svg className="w-4 h-4 mr-2" viewBox="0 0 16 16" fill="currentColor">
+                      <path d="M3 2.5A.5.5 0 013.5 2h9a.5.5 0 01.5.5v11a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5v-11zm1 .5v10h8V3H4z"/>
+                      <path d="M6 5.5a.5.5 0 01.757-.429l4 2.5a.5.5 0 010 .858l-4 2.5A.5.5 0 016 10.5v-5z"/>
+                    </svg>
+                    Crawl now
+                  </Button>
+                )}
               </TableCell>
             </TableRow>
           ))}
