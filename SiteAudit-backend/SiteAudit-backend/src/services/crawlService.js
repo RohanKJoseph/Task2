@@ -70,20 +70,37 @@ function generateMockUrls(count) {
 
 /**
  * Calculate health score based on issues
+ * Score is based on issue density and distribution
  */
-function calculateHealthScore(issues) {
-  let score = 100;
-
-  issues.forEach(issue => {
-    if (issue.severity === 'error') {
-      score -= issue.count * 0.5;
-    } else if (issue.severity === 'warning') {
-      score -= issue.count * 0.2;
-    } else if (issue.severity === 'notice') {
-      score -= issue.count * 0.05;
-    }
-  });
-
+function calculateHealthScore(issues, urlsCrawled = 733) {
+  if (!issues || issues.length === 0) {
+    return 100; // Perfect score if no issues
+  }
+  
+  // Count issues by severity
+  const errorCount = issues.filter(i => i.severity === 'error').reduce((sum, i) => sum + i.count, 0);
+  const warningCount = issues.filter(i => i.severity === 'warning').reduce((sum, i) => sum + i.count, 0);
+  const noticeCount = issues.filter(i => i.severity === 'notice').reduce((sum, i) => sum + i.count, 0);
+  
+  const totalIssues = errorCount + warningCount + noticeCount;
+  
+  if (totalIssues === 0) {
+    return 100;
+  }
+  
+  // Calculate issue density (issues per page crawled)
+  const issueDensity = totalIssues / Math.max(1, urlsCrawled);
+  
+  // Base score calculation
+  // Score formula: 100 * e^(-density) gives us a smooth exponential decay
+  // This means: no issues = 100, as density increases, score decreases exponentially
+  let score = 100 * Math.exp(-issueDensity);
+  
+  // Add severity weighting (errors hurt more than warnings)
+  const errorWeight = (errorCount / Math.max(1, totalIssues)) * 20;
+  score -= errorWeight;
+  
+  // Ensure score is between 0 and 100
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
@@ -109,6 +126,12 @@ export async function simulateCrawl(siteId, crawlId) {
   for (const stage of stages) {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
+    // Check if crawl was stopped
+    const currentCrawl = storage.crawls.find(c => c.id === crawlId);
+    if (!currentCrawl || currentCrawl.status === 'stopped') {
+      return;
+    }
+
     crawl.progress = stage.progress;
     crawl.status = stage.status;
     crawl.currentMessage = stage.message;
@@ -125,7 +148,7 @@ export async function simulateCrawl(siteId, crawlId) {
       crawl.warningsCount = issues.filter(i => i.severity === 'warning').reduce((sum, i) => sum + i.count, 0);
       crawl.noticesCount = issues.filter(i => i.severity === 'notice').reduce((sum, i) => sum + i.count, 0);
 
-      crawl.healthScore = calculateHealthScore(issues);
+      crawl.healthScore = calculateHealthScore(issues, crawl.urlsCrawled);
 
       site.lastCrawl = crawl.startedAt;
       site.status = 'completed';

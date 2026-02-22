@@ -20,9 +20,22 @@ export function useSites() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sites'] })
   });
 
+  const stopCrawl = useMutation({
+    mutationFn: async (siteId) => {
+      const history = await crawlsApi.history(siteId, { limit: 1 });
+      const latest = Array.isArray(history) ? history[0] : null;
+      if (!latest?.id) {
+        throw new Error('No crawl history found for this site');
+      }
+      return crawlsApi.stop(latest.id);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sites'] })
+  });
+
   return {
     sites: query.data || [],
     isLoading: query.isLoading,
-    startCrawl: startCrawl.mutate
+    startCrawl: startCrawl.mutate,
+    stopCrawl: stopCrawl.mutate
   };
 }

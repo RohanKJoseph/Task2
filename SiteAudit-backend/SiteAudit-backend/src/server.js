@@ -66,7 +66,7 @@ app.listen(PORT, () => {
 ╔═══════════════════════════════════════════════════╗
 ║                                                   ║
 ║        Site Audit API Server                      ║
-║        Running on http://localhost:${PORT}           ║
+║        Running on http://localhost:${PORT}        ║
 ║                                                   ║
 ║                                                   ║
 ║        Readme: README.md                          ║

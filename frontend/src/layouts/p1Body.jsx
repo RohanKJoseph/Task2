@@ -16,6 +16,11 @@ import { useSites } from '../hooks/useSites'
 import { useAppStore } from '../stores/useAppStore'
 import AddSiteDialog from './AddSiteDialog'
 import IssueSettingsDialog from './IssueSettingsDialog'
+import { IoMdAdd } from 'react-icons/io'
+import { FaPlay } from 'react-icons/fa'
+import { MdSettings } from 'react-icons/md'
+import { IoCloseCircle } from 'react-icons/io5'
+import { BsArrowRepeat } from 'react-icons/bs'
 
 function formatLastCrawlDate(dateString) {
   if (!dateString) return '-';
@@ -36,7 +41,7 @@ function getStatusLabel(status) {
 
 export default function SitesBody() {
   // FIX 1: Hook must be called INSIDE the component function
-  const { sites, isLoading, startCrawl } = useSites();
+  const { sites, isLoading, startCrawl, stopCrawl } = useSites();
   const navigate = useNavigate()
   const toggleIssueSettings = useAppStore((s) => s.toggleIssueSettings)
   const toggleAddSite = useAppStore((s) => s.toggleAddSite)
@@ -51,52 +56,112 @@ export default function SitesBody() {
   if (isLoading) return <div className="p-24">Loading sites...</div>
 
   return (
-    <div className="p-24 w-full max-w-none">
+    <div className="w-full max-w-none pl-8 pr-6 bg-white">
       {/* --- Header Section --- */}
-      <div className="flex items-end justify-between">
+      <div className="flex items-end justify-between bg-white">
         <div className="flex-1 max-w-lg">
-          <Heading level={1} className="text-2xl font-bold text-zinc-950">Sites</Heading>
-          <div className="mt-4 flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-zinc-950">Sites</h2>
+          <div className="mt-4 flex items-center gap-3">
             <div className="relative w-full">
-               <svg data-slot="icon" className="absolute left-3 top-1/2 -translate-y-1/2 size-4 fill-zinc-400" viewBox="0 0 16 16"><path d="M11.5 7a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Zm-.944 4.556a5.5 5.5 0 1 0-1.06-1.06l3.52 3.52a.75.75 0 1 0 1.06-1.06l-3.52-3.52Z" /></svg>
-               <Input placeholder="Search Sites" className="pl-10" />
+              <img src="/SVG.png" alt="Search" className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 opacity-50" />
+              <Input 
+                placeholder="Search Sites" 
+                style={{
+                  paddingLeft: '2.5rem',
+                  height: '36px',
+                  width: '450px',
+                  border: '1px solid #09090B1A',
+                  borderRadius: '7px',
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+                }}
+              />
             </div>
           </div>
         </div>
         
         <div className="flex items-center gap-3">
-          <Button color="dark" onClick={() => toggleIssueSettings(true)}>Issue Settings</Button>
-          <Button color="dark" onClick={() => toggleAddSite(true)}>Add New Site</Button>
+          <Button className="p-2 flex items-center gap-2" color="white" style={{
+            border: '1px solid #09090B1A',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            width: '144px',
+            height: '36px',
+            borderRadius: '7px'
+          }} onClick={() => toggleIssueSettings(true)}>
+            <MdSettings className="text-gray-500" />
+            Issue Settings
+          </Button>
+          <Button color="dark" style={{
+            width: '144px',
+            height: '36px',
+            borderRadius: '7px'
+          }} onClick={() => toggleAddSite(true)}>
+            <IoMdAdd /> Add New Site
+          </Button>
         </div>
       </div>
 
       {/* --- Table Section --- */}
-      <Table className="mt-8">
-        <TableHead>
-          <TableRow>
-            <TableHeader>Site</TableHeader>
-            <TableHeader>Last crawl</TableHeader>
-            <TableHeader>Status</TableHeader>
-            <TableHeader>Health score</TableHeader>
-            <TableHeader>URL Crawled</TableHeader>
-            <TableHeader>URLs having errors</TableHeader>
-            <TableHeader />
+      <Table className="mt-8 bg-white">
+        <TableHead style={{ paddingLeft: '1rem', paddingRight: '1rem',color: '#71717B' }}>
+          <TableRow style={{ height: '40.5px' }}>
+            <TableHeader style={{ width: '290px' }}>Site</TableHeader>
+            <TableHeader style={{ width: '130px' }}>Last crawl</TableHeader>
+            <TableHeader style={{ width: '130px' }}>Status</TableHeader>
+            <TableHeader style={{ width: '130px' }}>Health score</TableHeader>
+            <TableHeader style={{ width: '130px' }}>URL Crawled</TableHeader>
+            <TableHeader style={{ width: '130px' }}>URLs having errors</TableHeader>
+            <TableHeader style={{ width: '130px' }} />
           </TableRow>
         </TableHead>
         <TableBody>
           {sites.map(site => (
-            <TableRow key={site.id}>
-              {/* FIX 2: Ensure TableCell count matches TableHeader count */}
+            <TableRow key={site.id} style={{ borderTop: '2px solid #E4E4E7', borderBottom: '2px solid #E4E4E7', height: '80px' }}>
+              {/* FIX 2: Ensure Ta  bleCell count matches TableHeader count */}
               <TableCell className="font-medium">
-                <div className='text-stone-800'>{site.name}</div>
-                {/* <div className="text-xs text-zinc-500">{site.url}</div> */}
-                <button
-                  type="button"
-                  onClick={() => handleOpenSite(site.id)}
-                  className="text-xs text-blue-600 hover:underline"
-                >
-                  open
-                </button>
+                <div className='flex items-center gap-2'>
+                  <img src="/p1img.png" alt="site-icon" style={{ width: '72px', height: '48px', borderRadius: '4px', border: '1px solid #E4E4E7' }} />
+                  <div>
+                    <div
+                      className='text-stone-800'
+                      style={{
+                        fontFamily: 'Inter, sans-serif',
+                        fontWeight: 400,
+                        fontSize: '14px',
+                        lineHeight: '24px',
+                        letterSpacing: '0%',
+                        verticalAlign: 'middle'
+                      }}
+                    >
+                      {site.name}
+                    </div>
+                    {/* <div className="text-xs text-zinc-500">{site.url}</div> */}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenSite(site.id)}
+                      style={{
+
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        lineHeight: '24px',
+                        letterSpacing: '0%',
+                        verticalAlign: 'middle',
+                        textDecorationLine: 'underline',
+                        textDecorationStyle: 'solid',
+                        textDecorationOffset: '0px',
+                        textDecorationThickness: '0px',
+                        textDecorationSkipInk: 'auto',
+                        color: '#000',
+                        background: 'none',
+                        border: 'none',
+                        padding: 0,
+                        marginTop: '4px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Open
+                    </button>
+                  </div>
+                </div>
               </TableCell>
               <TableCell className="text-zinc-500">
                 {formatLastCrawlDate(site.lastCrawl)}
@@ -115,7 +180,17 @@ export default function SitesBody() {
                 <HealthScoreCircle score={site.healthScore ?? 0} />
               </TableCell>
 
-              <TableCell className="text-zinc-500"> 
+              <TableCell
+                className="text-zinc-500"
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontWeight: 400,
+                  fontSize: '14px',
+                  lineHeight: '24px',
+                  letterSpacing: '0%',
+                  verticalAlign: 'middle'
+                }}
+              > 
                 {site.urlsCrawled == null
                   ? '-'
                   : typeof site.urlsCrawled === 'number'
@@ -128,32 +203,70 @@ export default function SitesBody() {
           
                    </TableCell>
 
-              <TableCell className="text-red-600 font-bold">{site.errorsCount}</TableCell>
+              <TableCell className="text-red-600 font-medium ">{site.errorsCount}</TableCell>
               <TableCell className="text-right">
-                {site.status === 'crawling' ? (
-                  <Button color="dark" onClick={() => {/* stop crawl logic */}}>
-                    <svg className="w-4 h-4 mr-2" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M5.28 4.22a.75.75 0 00-1.06 1.06L6.94 8l-2.72 2.72a.75.75 0 101.06 1.06L8 9.06l2.72 2.72a.75.75 0 101.06-1.06L9.06 8l2.72-2.72a.75.75 0 00-1.06-1.06L8 6.94 5.28 4.22z" />
+                <div className="flex items-center justify-end gap-2">
+                  {site.status === 'crawling' ? (
+                    <Button className="flex items-center gap-2" color="white" style={{
+            border: '1px solid #09090B1A',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            width: '140px',
+            height: '36px',
+            borderRadius: '7px',
+            padding: '8px 12px'
+          }} onClick={() => stopCrawl(site.id)}>
+                      <IoCloseCircle size={16} />
+                      Stop Crawling
+                    </Button>
+                  ) : site.status === 'failed' ? (
+                    <Button className="flex items-center gap-2" color="white" style={{
+            border: '1px solid #09090B1A',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            width: '160px',
+            height: '36px',
+            borderRadius: '7px',
+            padding: '8px 12px'
+          }} onClick={() => startCrawl(site.id)}>
+                      <BsArrowRepeat size={16} className="text-red-600" />
+                      <span className="text-red-600">Try Crawling Again</span>
+                    </Button>
+                  ) : (
+                    <Button className="flex items-center gap-2" color="white" style={{
+            border: '1px solid #09090B1A',
+            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+            width: '116px',
+            height: '36px',
+            borderRadius: '7px',
+            padding: '8px 12px'
+          }} onClick={() => startCrawl(site.id)}>
+                      <FaPlay size={14} />
+                      Crawl now
+                    </Button>
+                  )}
+                  <button
+                    type="button"
+                    aria-label="Row options"
+                    style={{
+                      width: '36px',
+                      height: '36px',
+                      padding: '10px',
+                      borderRadius: '8px',
+                      opacity: 1,
+                      background: 'transparent',
+                      border: '1px solid transparent',
+                      color: '#71717B',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    <svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor" aria-hidden="true">
+                      <circle cx="2" cy="2" r="2" />
+                      <circle cx="2" cy="8" r="2" />
+                      <circle cx="2" cy="14" r="2" />
                     </svg>
-                    Stop Crawling
-                  </Button>
-                ) : site.status === 'failed' ? (
-                  <Button color="dark" onClick={() => startCrawl(site.id)}>
-                    <svg className="w-4 h-4 mr-2" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                      <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z"/>
-                    </svg>
-                    <span className="text-red-600">Try Crawling Again</span>
-                  </Button>
-                ) : (
-                  <Button color="dark" onClick={() => startCrawl(site.id)}>
-                    <svg className="w-4 h-4 mr-2" viewBox="0 0 16 16" fill="currentColor">
-                      <path d="M3 2.5A.5.5 0 013.5 2h9a.5.5 0 01.5.5v11a.5.5 0 01-.5.5h-9a.5.5 0 01-.5-.5v-11zm1 .5v10h8V3H4z"/>
-                      <path d="M6 5.5a.5.5 0 01.757-.429l4 2.5a.5.5 0 010 .858l-4 2.5A.5.5 0 016 10.5v-5z"/>
-                    </svg>
-                    Crawl now
-                  </Button>
-                )}
+                  </button>
+                </div>
               </TableCell>
             </TableRow>
           ))}
