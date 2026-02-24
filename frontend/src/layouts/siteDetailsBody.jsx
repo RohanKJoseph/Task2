@@ -18,17 +18,19 @@ import { useSite } from '../hooks/useSite'
 import { useCrawlDetails, useCrawlHistory, useCrawlIssues, useFixCrawlIssues, useStartCrawl } from '../hooks/useCrawls'
 import { useAppStore } from '../stores/useAppStore'
 import { CiGlobe } from 'react-icons/ci'
-import { FaChevronRight, FaPlay } from 'react-icons/fa'
+import { FaArrowDown, FaArrowUp, FaChevronRight, FaPlay } from 'react-icons/fa'
 import { RiErrorWarningFill } from 'react-icons/ri'
 import { IoWarning } from 'react-icons/io5'
 import { MdInfoOutline } from 'react-icons/md'
 import { Label } from '@headlessui/react'
+import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from '../component/catalyst-ui/dropdown'
+import { ExclamationCircleIcon, ExclamationTriangleIcon, ChevronUpDownIcon } from '@heroicons/react/24/solid'
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value || 0)
 const formatCrawlLabel = (crawl) => {
   if (!crawl) return 'No crawls'
   const time = crawl.startedAt ? new Date(crawl.startedAt).toLocaleString() : 'Unknown time'
-  return `${time} (${crawl.status})`
+  return `${time}`
 }
 
 const SECTION_CONFIG = {
@@ -242,11 +244,40 @@ export default function SiteDetailsBody() {
   
   // Determine health status
   const getHealthStatus = (score) => {
-    if (score >= 80) return { label: 'Good', color: 'text-green-600' }
-    if (score >= 50) return { label: 'Moderate', color: 'text-yellow-600' }
-    return { label: 'Poor', color: 'text-red-600' }
+    if (score >= 80) return { label: 'Good', textClass: 'text-green-600', badgeColor: 'green' }
+    if (score >= 50) return { label: 'Moderate', textClass: 'text-yellow-600', badgeColor: 'yellow' }
+    return { label: 'Poor', textClass: 'text-red-600', badgeColor: 'red' }
   }
   const healthStatus = getHealthStatus(healthScore)
+  const previousCrawlDetails = compareCrawlDetails ?? crawlHistory[1]
+
+  const getPercentChange = (current, previous) => {
+    const currentValue = Number(current) || 0
+    const previousValue = Number(previous) || 0
+    if (previousValue === 0) {
+      return currentValue === 0 ? 0 : 100
+    }
+    return ((currentValue - previousValue) / previousValue) * 100
+  }
+
+  const healthScoreChangePercent = getPercentChange(
+    healthScore,
+    previousCrawlDetails?.healthScore
+  )
+  const urlsCrawledChangePercent = getPercentChange(
+    urlsCrawled,
+    previousCrawlDetails?.urlsCrawled
+  )
+  const pagesWithErrorsChangePercent = getPercentChange(
+    pagesWithErrors,
+    previousCrawlDetails?.pagesWithErrors
+  )
+  const totalIssuesCurrent = severityTotals.error + severityTotals.warning + severityTotals.notice
+  const totalIssuesPrevious =
+    (previousCrawlDetails?.errorsCount || 0) +
+    (previousCrawlDetails?.warningsCount || 0) +
+    (previousCrawlDetails?.noticesCount || 0)
+  const totalIssuesChangePercent = getPercentChange(totalIssuesCurrent, totalIssuesPrevious)
 
   return (
     <div className="w-full">
@@ -259,56 +290,64 @@ export default function SiteDetailsBody() {
           </div>
           <div className="flex flex-wrap items-end gap-3">
             <div>
-              <Select
-                value={activeCrawlId || ''}
-                onChange={(event) => setSelectedCrawl(event.target.value || null)}
-                className="w-47.25"
-                selectClassName="h-[36px] py-2 px-4 text-[#09090B] rounded-lg border"
-                style={{
-                  width: '189px',
-                  height: '36px',
-                  gap: '12px',
-                  opacity: 1,
-                  borderRadius: '8px',
-                  borderWidth: '1px',
-                  borderColor: activeCrawlId ? '#D4D4D8' : '#E4E4E7',
-                  color: '#09090B'      
-                }}
-              >
-                {!crawlHistory.length && <option value="">No crawls yet</option>}
-                {crawlHistory.map((crawl) => (
-                  <option key={crawl.id} value={crawl.id}>
-                    {formatCrawlLabel(crawl)}
-                  </option>
-                ))}
-              </Select>
+              <Dropdown>
+                <DropdownButton
+                  outline
+                  className="w-[189px] h-[36px] gap-3 px-3.5 py-2 text-sm font-medium rounded-lg border !border-[#E4E4E7] !text-black !bg-white flex items-center justify-between"
+                >
+                  <span className="truncate">
+                    {activeCrawlId
+                      ? formatCrawlLabel(crawlHistory.find((c) => c.id === activeCrawlId))
+                      : 'No crawls yet'}
+                  </span>
+                  <ChevronUpDownIcon className="size-4 shrink-0 text-zinc-500" />
+                </DropdownButton>
+                <DropdownMenu anchor="bottom start" className="w-[280px]">
+                  {!crawlHistory.length && (
+                    <DropdownItem disabled>
+                      No crawls yet
+                    </DropdownItem>
+                  )}
+                  {crawlHistory.map((crawl) => (
+                    <DropdownItem
+                      key={crawl.id}
+                      onClick={() => setSelectedCrawl(crawl.id)}
+                    >
+                      {formatCrawlLabel(crawl)}
+                    </DropdownItem>
+                  ))}
+                </DropdownMenu>
+              </Dropdown>
             </div>
             <div>
-              <Select
-                value={compareCrawlId || ''}
-                onChange={(event) => setCompareCrawl(event.target.value || null)}
-                className="w-47.25"
-                selectClassName="h-[36px] py-2 px-4 text-[#09090B] rounded-lg border"
-                style={{
-                  width: '189px',
-                  height: '36px',
-                  gap: '12px',
-                  opacity: 1,
-                  borderRadius: '8px',
-                  borderWidth: '1px',
-                  borderColor: compareCrawlId ? '#D4D4D8' : '#E4E4E7',
-                  color: '#09090B'
-                }}
-              >
-                <option value="" style={{ color: '#09090B' }}>Compare With</option>
-                {crawlHistory
-                  .filter((crawl) => crawl.id !== activeCrawlId)
-                  .map((crawl) => (
-                    <option  key={crawl.id} value={crawl.id}>
-                      {formatCrawlLabel(crawl)}
-                    </option>
-                  ))}
-              </Select>
+              <Dropdown>
+                <DropdownButton
+                  outline
+                  className="w-[189px] h-[36px] !flex !justify-between gap-3 px-3.5 py-2 text-sm font-medium rounded-lg border !border-[#E4E4E7] !text-black !bg-white flex items-center justify-between"
+                >
+                  <span className="truncate">
+                    {compareCrawlId
+                      ? formatCrawlLabel(crawlHistory.find((c) => c.id === compareCrawlId))
+                      : 'Compare With'}
+                  </span>
+                  <ChevronUpDownIcon className="size-4 shrink-0 text-zinc-500" />
+                </DropdownButton>
+                <DropdownMenu anchor="bottom start" className="w-[280px]">
+                  <DropdownItem onClick={() => setCompareCrawl(null)}>
+                    Compare With
+                  </DropdownItem>
+                  {crawlHistory
+                    .filter((crawl) => crawl.id !== activeCrawlId)
+                    .map((crawl) => (
+                      <DropdownItem
+                        key={crawl.id}
+                        onClick={() => setCompareCrawl(crawl.id)}
+                      >
+                        {formatCrawlLabel(crawl)}
+                      </DropdownItem>
+                    ))}
+                </DropdownMenu>
+              </Dropdown>
             </div>
             <Button
               color="blue"
@@ -324,22 +363,14 @@ export default function SiteDetailsBody() {
                 fixCrawlIssues(activeCrawlId)
               }}
               disabled={!activeCrawlId || fixCrawlLoading}
+              className="!bg-[#5C33FF] !flex !justify-center !items-center"
             >
               Fix all errors using AI
             </Button>
             <Button
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border !border-[#E4E4E7] !text-black w-[124px] h-[36px] text-sm font-medium !bg-white "
               color="dark"
-              style={{
-                border: '1px solid #09090B1A',
-                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-                width: '124px',
-                height: '36px',
-                borderRadius: '7px',
-                padding: '8px 12px',
-                fontSize: '14px',
-                fontWeight: 500,
-              }}
+              
               onClick={() => {
                 if (!site?.id) return
                 startCrawl(site.id)
@@ -358,40 +389,34 @@ export default function SiteDetailsBody() {
         <div className="rounded-xl border border-zinc-950/10 bg-white p-5 h-168px w-273px ">
         <div className="flex items-center justify-between">
           <div className="text-14px font-semibold text-#202020">Health score</div>
-          <Badge color={healthStatus.color} className="mt-1">
-            <Badge color={healthStatus.color} className="size-4 mr-1" /> {healthStatus.label}
+          <Badge color={healthStatus.badgeColor} className="mt-1 flex items-center gap-1">
+            {healthScoreChangePercent >= 0 ? <FaArrowUp size={12} /> : <FaArrowDown size={12} />}
+            {Math.abs(Math.round(healthScoreChangePercent))}%
           </Badge>
         </div>
-          <div className="mt-3 flex items-center gap-4">
-            <HealthScoreCircle score={Number.isFinite(healthScore) ? healthScore : 0} size={100} strokeWidth={6} />
-            <div className="flex flex-col">
-              <div className="text-2xl font-semibold text-zinc-950">{formatNumber(healthScore)}%</div>
-              <div className={`text-xs font-medium ${healthStatus.color}`}>{healthStatus.label}</div>
-            </div>
+          <div className="mt-3 flex !items-center justify-center">
+            <HealthScoreCircle className="!w-100 !h-100" score={Number.isFinite(healthScore) ? healthScore : 0} size={190} strokeWidth={10} />
+            
           </div>
-          {healthScoreChange !== 0 && (
-            <div className={`mt-3 flex items-center gap-1 text-sm ${
-              healthScoreChange > 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-               
-            </div>
-          )}
         </div>
 
         {/* URLs Crawled Card */}
         <div className="rounded-xl border border-zinc-950/10 bg-white p-5">
         <div className="flex items-center justify-between">
            <div className="text-14px font-semibold text-#202020">URLs crawled</div>
-          <Badge color="blue" className="mt-1"> <Badge color="blue" className="size-4 mr-1" /> {} </Badge>
+          <Badge color="zinc" className="mt-1 flex items-center gap-1 !bg-[#F4F4F5]">
+            {urlsCrawledChangePercent >= 0 ? <FaArrowUp size={12} /> : <FaArrowDown size={12} />}
+            {Math.abs(Math.round(urlsCrawledChangePercent))}%
+          </Badge>
         </div>
          
-          <div className="mt-3 text-5xl font-semibold text-zinc-950">{formatNumber(urlsCrawled)}</div>
+          <div className="mt-3 text-4xl font-semibold text-zinc-950">{formatNumber(urlsCrawled)}</div>
           <div className="mt-3 flex flex-col gap-1 text-sm">
-            <div className="flex justify-between text-zinc-600 border-b border-zinc-200 pb-1">
+            <div className="flex justify-between text-zinc-500 border-b border-zinc-200 pb-1">
               <span>Internal page</span>
-              <span className="font-medium-500 size-12px text-zinc-950">{formatNumber(internalPages)}</span>
+              <span className="font-medium-500 size-14px text-zinc-950">{formatNumber(internalPages)}</span>
             </div>
-            <div className="flex justify-between text-zinc-600">
+            <div className="flex justify-between text-zinc-500">
               <span>Resources</span>
               <span className="font-medium  text-zinc-950">{formatNumber(resources)}</span>
             </div>
@@ -402,17 +427,20 @@ export default function SiteDetailsBody() {
         <div className="rounded-xl border border-zinc-950/10 bg-white p-5 pl-8">
         <div className="flex items-center justify-between">
           <div className="text-14px font-semibold text-#202020 ">Pages errors</div>
-          <Badge color="red" className="mt-1"> <Badge color="red" className="size-4 mr-1" /> {formatNumber(pagesWithErrors)} with errors </Badge>
+          <Badge color="red" className="mt-1 flex items-center gap-1">
+            {pagesWithErrorsChangePercent >= 0 ? <FaArrowUp size={12} /> : <FaArrowDown size={12} />}
+            {Math.abs(Math.round(pagesWithErrorsChangePercent))}%
+          </Badge>
         </div>
-          <div className="mt-3 text-5xl font-semibold text-zinc-950">{formatNumber(pagesWithErrors)}</div>
+          <div className="mt-3  text-4xl font-semibold text-zinc-950">{formatNumber(pagesWithErrors)}</div>
           <div className="mt-3 flex flex-col gap-1 text-sm">
-            <div className="flex justify-between text-zinc-600 border-b border-zinc-200 pb-1">
+            <div className="flex justify-between text-zinc-500 border-b border-zinc-200 pb-1">
               <span>With errors:</span>
-              <span className="font-medium text-zinc-950">{formatNumber(pagesWithErrors)}</span>
+              <span className="!font-medium size-14px text-zinc-950">{formatNumber(pagesWithErrors)}</span>
             </div>
-            <div className="flex justify-between text-zinc-600">
+            <div className="flex justify-between text-zinc-500">
               <span>Without errors:</span>
-              <span className="font-medium text-zinc-950" style={{
+              <span className="!font-medium size-14px text-zinc-950" style={{
               fontWeight:"500"
               }}>{formatNumber(pagesWithoutErrors)}</span>
             </div>
@@ -421,16 +449,19 @@ export default function SiteDetailsBody() {
 
         {/* Issues Distribution Card */}
         <div className="rounded-xl border border-zinc-950/10 bg-white p-5">
-          <div className="text-14px font-semibold text-#202020">Issues distribution</div>
+          <div className="flex items-center justify-between">
+            <div className="text-14px font-semibold text-#202020">Issues distribution</div>
+             
+          </div>
           <div className="mt-5 flex flex-col gap-3 text-sm">
-            <div className="  flex items-center justify-between px-2 py-1  text-zinc-600 border-b border-zinc-200 ">
-              <div className='flex items-center'><RiErrorWarningFill className="text-red-500 mr-2" /> Errors:</div> <span className="font-medium text-zinc-950">{formatNumber(severityTotals.error)}</span>
+            <div className="  flex items-center justify-between px-2 py-1  text-zinc-500 border-b border-zinc-200 ">
+              <div className='flex items-center'><ExclamationCircleIcon className="text-red-500 h-4.5 w-4.5 mr-1" /> Errors:</div> <span className="font-medium text-zinc-950">{formatNumber(severityTotals.error)}</span>
             </div>
-            <div className="  flex items-center justify-between px-2 py-1  text-zinc-600 border-b border-zinc-200  ">
-             <div className='flex items-center'><IoWarning className="text-yellow-500 mr-2" /> Warnings:</div> <span className="font-medium text-zinc-950">{formatNumber(severityTotals.warning)}</span>
+            <div className="  flex items-center justify-between px-2 py-1  text-zinc-500 border-b border-zinc-200  ">
+             <div className='flex items-center'><ExclamationTriangleIcon className="text-yellow-500 h-4.5 w-4.5 mr-1" /> Warnings:</div> <span className="font-medium text-zinc-950">{formatNumber(severityTotals.warning)}</span>
             </div>
-            <div className="  flex items-center justify-between px-2 py-1  text-zinc-600">
-             <div className='flex items-center'><IoWarning className="text-blue-500 mr-2" /> Notices: </div><span className="font-medium text-zinc-950">{formatNumber(severityTotals.notice)}</span>
+            <div className="  flex items-center justify-between px-2 py-1  text-zinc-500">
+             <div className='flex items-center'><ExclamationTriangleIcon className="text-blue-500 h-4.5 w-4.5 mr-1" /> Notices: </div><span className="font-medium text-zinc-950">{formatNumber(severityTotals.notice)}</span>
             </div>
           </div>
         </div>
@@ -444,32 +475,28 @@ export default function SiteDetailsBody() {
             {/* Toggle Buttons as Labels */}
             <label
               onClick={() => setActiveToggle('actual')}
-              style={{
-                width: '104px',
-                height: '48px',
-                minWidth: '56px',
-                gap: '4px',
-                opacity: 1,
-                paddingTop: '8px',
-                paddingRight: '16px',
-                paddingBottom: '14px',
-                paddingLeft: '16px',
-                borderRadius: '0px',
-                borderBottomWidth: '2px',
-                borderBottomColor: activeToggle === 'actual' ? '#09090B' : '#E4E4E7',
-                display: 'flex',
-               
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 600,
-                color: activeToggle === 'actual' ? '#09090B' : '#A1A1AA',
-                transition: 'all 0.3s ease'
-              }}
+              className={`w-[104px] h-[48px] min-w-[56px] flex !font-sm !text-black
+  items-center
+  justify-center
+  gap-0
+  px-
+  pt-2
+  pb-[14px]
+  rounded-none
+  border-b-2
+  cursor-pointer
+  text-sm
+  font-semibold
+  transition-all
+  duration-300
+  ease-in-out
+  ${activeToggle === 'actual'
+    ? 'border-b-[#09090B] text-[#09090B]'
+    : 'border-b-[#E4E4E7] text-[#A1A1AA]'}
+`}
             >
               Actual
-              <span style={{ color: '#09090B',fontWeight: 500,background: '#F3F4F6', fontSize: '12px', marginTop: '2px' }}>{formatNumber(actualCount)}</span>
+              <Badge color="zinc" className="">33</Badge>
             </label>
             <label
               onClick={() => setActiveToggle('new')}
@@ -499,59 +526,51 @@ export default function SiteDetailsBody() {
               }}
             >
               New
-              <span style={{ color: '#71717B', fontSize: '12px', marginTop: '2px' }}>{formatNumber(newCount)}</span>
+              <span className="text-[#71717B] text-xs mt-1 ml-1">{formatNumber(newCount)}</span>
             </label>
 
             {/* Filter Dropdown */}
+             
             <Select
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value)}
-              className="w-47.25"
-              selectClassName="h-[36px] py-2 px-4 text-[#09090B] rounded-lg border"
-              style={{
-                width: '189px',
-                height: '36px',
-                gap: '12px',
-                opacity: 1,
-                borderRadius: '8px',
-                borderWidth: '1px',
-                borderColor: '#E4E4E7',
-                color: '#09090B'
-              }}
-            >
+  value={statusFilter}
+  onChange={(event) => setStatusFilter(event.target.value)}
+  className="w-[160px] !text-black "
+  selectClassName="h-[36px] w-full !text-black px-4 py-2 rounded-lg border  !border-[#E4E4E7]   "
+>
               <option value="all">All Issues</option>
-              <option value="important">Important</option>
-              <option value="paused">Paused</option>
-              <option value="delayed">Delayed</option>
-              <option value="cancelled">Cancelled</option>
-            </Select>
+               <option value="important">Important</option>
+               <option value="paused">Paused</option>
+               <option value="delayed">Delayed</option>
+               <option value="cancelled">Cancelled</option>
+                </Select>
           </div>
 
         {  /* Export Button */}
+                
                 <Button
-                color=""
+                outline
                 onClick={handleExportIssues}
-                className="flex items-center  "
+                className="flex items-center !text-black border !border-[#e4e4e7]"
                 >
                 <Download className="size-4" />
                 Export All Issues
                 </Button>
               </div>
-
+              
               {issuesLoading ? (
                 <div className="mt-4 text-sm text-zinc-500">Loading issues...</div>
               ) : issues.length === 0 ? (
                 <div className="mt-4 text-sm text-zinc-500">No issues found for this crawl.</div>
               ) : (
-                <Table className="mt-4" style={{ border: '1px solid #E4E4E7' }}>
-                <TableHead style={{ border: '1px solid #E4E4E7' }}>
-                  <TableRow style={{ border: '1px solid #E4E4E7' }} className="bg-zinc-50 text-zinc-950 text-left text-sm font-semibold">
-                  <TableHeader style={{ border: '1px solid #E4E4E7' }}>Issues</TableHeader> 
-                  <TableHeader style={{ border: '1px solid #E4E4E7' }}>Crawled</TableHeader>
-                  <TableHeader style={{ border: '1px solid #E4E4E7' }}>Changes</TableHeader>
-                  <TableHeader style={{ border: '1px solid #E4E4E7' }}>Added</TableHeader>
-                  <TableHeader style={{ border: '1px solid #E4E4E7' }}>New</TableHeader>
-                  <TableHeader style={{ border: '1px solid #E4E4E7' }}>Removed</TableHeader>
+                <Table dense grid className="">
+                <TableHead >
+                  <TableRow className="!bg-[#FAFAFA] text-zinc-950 text-left text-sm font-semibold border border-[#e4e4e7]">
+                  <TableHeader className='border border-[#e4e4e7] text-sm font-semibold'>Issues</TableHeader> 
+                  <TableHeader className='border border-[#e4e4e7] text-sm !font-semibold'>Crawled</TableHeader>
+                  <TableHeader className='border border-[#e4e4e7] text-sm font-semibold'>Changes</TableHeader>
+                  <TableHeader className='border border-[#e4e4e7] text-sm font-semibold'>Added</TableHeader>
+                  <TableHeader className='border border-[#e4e4e7] text-sm font-semibold'>New</TableHeader>
+                  <TableHeader className='border border-[#e4e4e7] text-sm font-semibold'>Removed</TableHeader>
                   {/* <TableHeader className="w-16">Actions</TableHeader> */}
               </TableRow>
             </TableHead>
@@ -567,28 +586,28 @@ export default function SiteDetailsBody() {
                     <TableRow key={issue.id}>
                       <TableCell style={{ border: '1px solid #E4E4E7', paddingLeft: '5px' }} className="font-medium text-zinc-950">
                         <div className="flex items-center gap-2 pl-5">
-                          {issue.severity === 'error' && <RiErrorWarningFill size={18} className="text-red-600 flex-shrink-0" />}
-                          {issue.severity === 'warning' && <IoWarning size={18} className="text-yellow-600 flex-shrink-0" />}
-                          {issue.severity === 'notice' && <MdInfoOutline size={18} className="text-blue-600 flex-shrink-0" />}
+                          {issue.severity === 'error' && <ExclamationCircleIcon  className="text-red-600  w-5 h-5" />}
+                          {issue.severity === 'warning' && <ExclamationTriangleIcon  className="text-yellow-600  w-5 h-5" />}
+                          {issue.severity === 'notice' && <ExclamationTriangleIcon  className="text-blue-600  w-5 h-5" />}
                           <span>{issue.name}</span>
                         </div>
                       </TableCell>
-                      <TableCell style={{ border: '1px solid #E4E4E7' }} className="text-zinc-600">
+                      <TableCell className="border !border-[#E4E4E7] text-zinc-600">
                         {formatNumber(issue.crawledCount ?? issue.count ?? 0)}
                       </TableCell>
-                      <TableCell style={{ border: '1px solid #E4E4E7' }} className="text-zinc-600">
+                      <TableCell className="border !border-[#E4E4E7] text-zinc-600">
                         {formatNumber(issue.changes ?? 0)}
                       </TableCell>
-                      <TableCell style={{ border: '1px solid #E4E4E7' }} className="text-zinc-600">
+                      <TableCell className="border !border-[#E4E4E7] text-zinc-600">
                         {formatNumber(issue.added ?? 0)}
                       </TableCell>
-                      <TableCell style={{ border: '1px solid #E4E4E7' }} className="text-zinc-600">
+                      <TableCell className="border !border-[#E4E4E7] text-zinc-600">
                         {formatNumber(issue.new ?? 0)}
                       </TableCell>
-                      <TableCell style={{ border: '1px solid #E4E4E7' }} className="text-zinc-600">
+                      <TableCell className="border !border-[#E4E4E7] text-zinc-600">
                         {formatNumber(issue.removed ?? 0)}
                       </TableCell>
-                      <TableCell style={{ border: '1px solid #E4E4E7' }}>
+                      <TableCell className="border !border-[#E4E4E7]">
                         <div className="relative">
                           <button
                             onClick={() => setOpenMenuId(openMenuId === issue.id ? null : issue.id)}

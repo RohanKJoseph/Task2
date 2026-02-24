@@ -1,5 +1,5 @@
 import { Heading } from '../component/catalyst-ui/heading'
-import { Input } from '../component/catalyst-ui/input'
+import { Input, InputGroup } from '../component/catalyst-ui/input'
 import { Button } from '../component/catalyst-ui/button'
 import { Badge } from '../component/catalyst-ui/badge'
 import { HealthScoreCircle } from '../component/catalyst-ui/healthScoreCircle'
@@ -59,23 +59,21 @@ export default function SitesBody() {
     <div className="w-full max-w-none pl-8 pr-6 bg-white">
       {/* --- Header Section --- */}
       <div className="flex items-end justify-between bg-white">
-        <div className="flex-1 max-w-lg">
+        <div className="">
           <h2 className="text-2xl font-bold text-zinc-950">Sites</h2>
           <div className="mt-4 flex items-center gap-3">
-            <div className="relative w-full">
-              <img src="/SVG.png" alt="Search" className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 opacity-50" />
-              <Input 
-                placeholder="Search Sites" 
-                style={{
-                  paddingLeft: '2.5rem',
-                  height: '36px',
-                  width: '450px',
-                  border: '1px solid #09090B1A',
-                  borderRadius: '7px',
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-                }}
+            <InputGroup className="!w-full">
+              <img
+                src="/SVG.png"
+                alt="Search"
+                data-slot="icon"
+                className="opacity-50"
               />
-            </div>
+              <Input
+                placeholder="Search Sites"
+                className="!border !text-black rounded-md !border-[#e4e4e7] shadow-[0_1px_2px_0_#0000000] !w-[432px]"
+              />
+            </InputGroup>
           </div>
         </div>
         
@@ -100,7 +98,7 @@ export default function SitesBody() {
         </div>
       </div>
 
-      {/* --- Table Section --- */}
+      {/* Table Section */}
       <Table className="mt-8 bg-white">
         <TableHead style={{ paddingLeft: '1rem', paddingRight: '1rem',color: '#71717B' }}>
           <TableRow style={{ height: '40.5px' }}>
@@ -115,7 +113,7 @@ export default function SitesBody() {
         </TableHead>
         <TableBody>
           {sites.map(site => (
-            <TableRow key={site.id} style={{ borderTop: '2px solid #E4E4E7', borderBottom: '2px solid #E4E4E7', height: '80px' }}>
+            <TableRow key={site.id} style={{ borderTop: '2px solid #E4E4E7', borderBottom: '2px solid #E4E4E7' }}>
               {/* FIX 2: Ensure Ta  bleCell count matches TableHeader count */}
               <TableCell className="font-medium">
                 <div className='flex items-center gap-2'>
@@ -168,15 +166,15 @@ export default function SitesBody() {
               </TableCell>
               <TableCell>
                 <Badge color={
-                  site.status === 'completed' ? 'green' : 
+                  site.status === 'completed' ? 'lime' : 
                   site.status === 'failed' ? 'red' : 
-                  site.status === 'crawling' ? 'blue' : 
+                  site.status === 'crawling' ? 'amber' : 
                   'zinc'
                 }>
                   {getStatusLabel(site.status)}
                 </Badge>
               </TableCell>
-              <TableCell>
+              <TableCell className='!scale-70 -ml-6 !flex !items-center'>
                 <HealthScoreCircle score={site.healthScore ?? 0} />
               </TableCell>
 

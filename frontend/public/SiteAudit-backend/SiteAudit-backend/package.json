@@ -1,0 +1,23 @@
+{
+    "name": "site-audit-backend",
+    "version": "1.0.0",
+    "description": "Mock backend for site audit system",
+    "main": "src/server.js",
+    "type": "module",
+    "scripts": {
+        "start": "node src/server.js",
+        "dev": "node --watch src/server.js"
+    },
+    "keywords": [
+        "seo",
+        "site-audit",
+        "crawler"
+    ],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "express": "^4.18.2",
+        "cors": "^2.8.5",
+        "uuid": "^9.0.1"
+    }
+}
