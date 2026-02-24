@@ -1,5 +1,4 @@
-// src/hooks/useSites.js
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sitesApi, crawlsApi } from '../services/api';
 
 export function useSites() {
@@ -8,7 +7,7 @@ export function useSites() {
   const query = useQuery({
     queryKey: ['sites'],
     queryFn: () => sitesApi.getAll(),
-    // If any site is 'crawling', poll every 2s
+   
     refetchInterval: (query) => {
       const data = query.state.data;
       return data?.some(site => site.status === 'crawling') ? 2000 : false;

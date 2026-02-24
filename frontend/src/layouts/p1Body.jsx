@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { Loader } from '../component/catalyst-ui/Loader'
 import { Heading } from '../component/catalyst-ui/heading'
 import { Input, InputGroup } from '../component/catalyst-ui/input'
 import { Button } from '../component/catalyst-ui/button'
@@ -23,7 +25,7 @@ import { IoCloseCircle } from 'react-icons/io5'
 import { BsArrowRepeat } from 'react-icons/bs'
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from '../component/catalyst-ui/dropdown'
  
-import { EllipsisVerticalIcon } from '@heroicons/react/24/solid'
+import { EllipsisVerticalIcon, GlobeAltIcon } from '@heroicons/react/24/solid'
 
 function formatLastCrawlDate(dateString) {
   if (!dateString) return '-';
@@ -43,25 +45,34 @@ function getStatusLabel(status) {
 }
 
 export default function SitesBody() {
-  
+  const [searchQuery, setSearchQuery] = useState('')
   const { sites, isLoading, startCrawl, stopCrawl, deleteSite } = useSites();
   const navigate = useNavigate()
   const toggleIssueSettings = useAppStore((s) => s.toggleIssueSettings)
   const toggleAddSite = useAppStore((s) => s.toggleAddSite)
   const setSelectedSite = useAppStore((s) => s.setSelectedSite)
 
+  const filteredSites = sites?.filter((site) => {
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase()
+    return (
+      site.name?.toLowerCase().includes(q) ||
+      site.url?.toLowerCase().includes(q)
+    )
+  }) ?? []
+
   const handleOpenSite = (siteId) => {
     setSelectedSite(siteId)
     navigate(`/sites/${siteId}`)
   }
 
-  // Handle loading state to prevent "sites is undefined" errors
-  if (isLoading) return <div className="p-24">Loading sites...</div>
+ 
+  if (isLoading) return <Loader text="Loading sites..." subtext="Fetching your sites" />
 
   return (
-    <div className="w-full max-w-none sm:pl-8 sm:pr-6 bg-white">
-      {/* --- Header Section --- */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between bg-white gap-2">
+    <div className="w-full max-w-none sm:px-4  ">
+ 
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between   gap-2">
         <div className="">
           <h2 className="text-2xl font-bold text-zinc-950">Sites</h2>
           <div className="mt-4 flex items-center gap-3">
@@ -74,6 +85,8 @@ export default function SitesBody() {
               />
               <Input
                 placeholder="Search Sites"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="!border !text-black rounded-md !border-[#e4e4e7] shadow-[0_1px_2px_0_#0000000] !w-[300px] sm:!w-[432px]"
               />
             </InputGroup>
@@ -90,9 +103,44 @@ export default function SitesBody() {
           </Button>
         </div>
       </div>
-
-      {/* Table Section */}
-      <Table dense className="mt-4 bg-white">
+ 
+      {filteredSites.length === 0 ? (
+        <div className="mt-16 flex flex-col items-center justify-center text-center px-4">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 mb-5">
+            <GlobeAltIcon className="h-8 w-8 text-zinc-400" />
+          </div>
+          {searchQuery.trim() ? (
+            <>
+              <h3 className="text-lg font-semibold text-zinc-950">No sites found</h3>
+              <p className="mt-1 text-sm text-zinc-500 max-w-sm">
+                No sites match "<span className="font-medium text-zinc-700">{searchQuery}</span>". Try a different search term.
+              </p>
+              <Button
+                outline
+                className="mt-5 !border-zinc-300 !text-zinc-700"
+                onClick={() => setSearchQuery('')}
+              >
+                Clear search
+              </Button>
+            </>
+          ) : (
+            <>
+              <h3 className="text-lg font-semibold text-zinc-950">No sites yet</h3>
+              <p className="mt-1 text-sm text-zinc-500 max-w-sm">
+                Get started by adding your first website to crawl and monitor its health.
+              </p>
+              <Button
+                color="dark"
+                className="mt-5 !flex !items-center !gap-2"
+                onClick={() => toggleAddSite(true)}
+              >
+                <IoMdAdd /> Add your first site
+              </Button>
+            </>
+          )}
+        </div>
+      ) : (
+      <Table dense className="mt-4 ">
         <TableHead className="!px-4 !text-[#71717B]">
           <TableRow className="!h-[40.5px]">
             <TableHeader className="!w-[290px]">Site</TableHeader>
@@ -105,7 +153,7 @@ export default function SitesBody() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {sites.map(site => (
+          {filteredSites.map(site => (
             <TableRow key={site.id} className="!border-y-2 !border-[#E4E4E7]">
           
               <TableCell className="font-medium !w-[290px]" style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
@@ -203,6 +251,7 @@ export default function SitesBody() {
           ))}
         </TableBody>
       </Table>
+      )}
 
       <AddSiteDialog />
       <IssueSettingsDialog />

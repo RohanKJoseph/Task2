@@ -33,7 +33,7 @@ export function AppSidebar({ onNavigate }) {
     <Sidebar className="h-full border-r border-zinc-950/5">
       <SidebarBody>
         <SidebarSection>
-          {/* Dashboard / All Sites */}
+ 
           <SidebarItem
             className="data-[current=true]:bg-[#F4F4F5] data-[current=true]:text-[#09090B]"
             to="/all-sites"
@@ -56,7 +56,7 @@ export function AppSidebar({ onNavigate }) {
             <SidebarLabel className="!text-black" >Social Media</SidebarLabel>
           </SidebarItem>
 
-          {/* SEO Audit */}
+   
           <SidebarItem
             to="/all-sites"
             current={isActive('/seo-audit')}
@@ -68,7 +68,7 @@ export function AppSidebar({ onNavigate }) {
             <SidebarLabel className="!text-black">SEO Audit</SidebarLabel>
           </SidebarItem>
 
-          {/* Team */}
+          
           <SidebarItem
             to="/all-sites"
             current={isActive('/teams')}
@@ -80,7 +80,7 @@ export function AppSidebar({ onNavigate }) {
             <SidebarLabel className="!text-black">Team</SidebarLabel>
           </SidebarItem>
 
-          {/* Domains */}
+ 
           <SidebarItem
             to="/all-sites"
             current={isActive('/domains')}
@@ -91,8 +91,7 @@ export function AppSidebar({ onNavigate }) {
             <GlobeAltIcon data-slot="icon" className='!fill-black' />
             <SidebarLabel className="!text-black">Domains</SidebarLabel>
           </SidebarItem>
-
-          {/* Usage */}
+ 
           <SidebarItem
             to="/all-sites"
             current={isActive('/usage')}
@@ -104,7 +103,7 @@ export function AppSidebar({ onNavigate }) {
             <SidebarLabel className="!text-black">Usage</SidebarLabel>
           </SidebarItem>
 
-          {/* Store */}
+      
           <SidebarItem
             to="/all-sites"
             current={isActive('/store')}
@@ -116,7 +115,7 @@ export function AppSidebar({ onNavigate }) {
             <SidebarLabel className="!text-black">Billing & Subscription</SidebarLabel>
           </SidebarItem>
 
-          {/* Settings */}
+    
           <SidebarItem
             to="/all-sites"
             current={isActive('/settings')}
@@ -131,7 +130,7 @@ export function AppSidebar({ onNavigate }) {
 
         <SidebarSpacer />
 
-        {/* AI Credits Card - Fixed at bottom */}
+       
         <div className="flex-shrink-0">
           <CreditsBox />
         </div>

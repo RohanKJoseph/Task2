@@ -1,4 +1,3 @@
-// src/hooks/useSite.js
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { sitesApi } from '../services/api';
 

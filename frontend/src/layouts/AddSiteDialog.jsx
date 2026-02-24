@@ -36,9 +36,13 @@ export default function AddSiteDialog() {
       setError('Name and URL are required')
       return false
     }
+    let url = form.url.trim()
+    if (!/^https?:\/\//i.test(url)) {
+      url = 'https://' + url
+      setForm((f) => ({ ...f, url }))
+    }
     try {
-      // basic URL validation
-      new URL(form.url)
+      new URL(url)
       return true
     } catch (e) {
       setError('Invalid URL')
@@ -75,15 +79,16 @@ export default function AddSiteDialog() {
   }
 
   return (
-    <Dialog open={open} onClose={() => toggle(false)} size="md">
-      <DialogTitle>Create new site</DialogTitle>
-      <DialogDescription>Add a website to start crawling and monitoring.</DialogDescription>
+    <Dialog open={open} onClose={() => toggle(false)} size="md" className="!bg-white !text-black ">
+      <DialogTitle className="!text-black">Create new site</DialogTitle>
+      <DialogDescription className="!text-zinc-700">Add a website to start crawling and monitoring.</DialogDescription>
 
       <DialogBody>
         <form onSubmit={submit} className="grid gap-4">
           <div>
             <label className="block text-sm font-medium text-zinc-700">Name</label>
             <Input
+              className="!border !border-zinc-300 !bg-white !rounded-lg !h-[36px]"
               placeholder="My website"
               value={form.name}
               onChange={(e) => change('name', e.target.value)}
@@ -94,69 +99,20 @@ export default function AddSiteDialog() {
           <div>
             <label className="block text-sm font-medium text-zinc-700">URL</label>
             <Input
+              className="!border !border-zinc-300 !bg-white !rounded-lg !h-[36px]"
               placeholder="https://example.com"
               value={form.url}
               onChange={(e) => change('url', e.target.value)}
               required
             />
           </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-zinc-700">Max pages</label>
-              <Input
-                type="number"
-                value={form.maxPages}
-                onChange={(e) => change('maxPages', e.target.value)}
-                min={1}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-zinc-700">Max depth</label>
-              <Input
-                type="number"
-                value={form.maxDepth}
-                onChange={(e) => change('maxDepth', e.target.value)}
-                min={0}
-              />
-            </div>
-          </div>
-
-          <div className="flex gap-4">
-            <CheckboxField>
-              <Checkbox
-                checked={form.crawlSubdomains}
-                onChange={(v) => change('crawlSubdomains', v)}
-              />
-              <div data-slot="label">Crawl subdomains</div>
-            </CheckboxField>
-
-            <CheckboxField>
-              <Checkbox
-                checked={form.respectRobotsTxt}
-                onChange={(v) => change('respectRobotsTxt', v)}
-              />
-              <div data-slot="label">Respect robots.txt</div>
-            </CheckboxField>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-zinc-700">User agent (optional)</label>
-            <Input
-              placeholder="Custom user agent"
-              value={form.userAgent}
-              onChange={(e) => change('userAgent', e.target.value)}
-            />
-          </div>
-
           {error && <div className="text-red-600 text-sm">{error}</div>}
         </form>
       </DialogBody>
 
-      <DialogActions>
-        <Button outline onClick={() => toggle(false)}>Cancel</Button>
-        <Button color="dark" onClick={submit} disabled={createSite.isLoading}>
+      <DialogActions className="!flex !gap-3">
+        <Button outline onClick={() => toggle(false)} className="!flex-1 !text-zinc-700 !border-zinc-300">Cancel</Button>
+        <Button color="dark" onClick={submit} disabled={createSite.isLoading} className="!flex-1">
           {createSite.isLoading ? 'Creating...' : 'Create site'}
         </Button>
       </DialogActions>

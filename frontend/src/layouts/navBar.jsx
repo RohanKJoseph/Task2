@@ -7,7 +7,7 @@ import {
   ArrowRightStartOnRectangleIcon,
 } from '@heroicons/react/20/solid'
 import { Avatar, AvatarButton } from '../component/catalyst-ui/avatar'
-import { Bars3Icon } from '@heroicons/react/24/outline'
+import { Bars3Icon, BellIcon } from '@heroicons/react/24/outline'
 
 export function TopNavbar({ onHamburgerClick }) {
   const location = useLocation()
@@ -40,7 +40,7 @@ export function TopNavbar({ onHamburgerClick }) {
         <img src="/codedesign.svg" alt="Logo" className="h-9 w-auto" />
       </button>
 
-      {/* Hamburger menu - mobile only */}
+      
       <button
         type="button"
         onClick={onHamburgerClick}
@@ -49,7 +49,7 @@ export function TopNavbar({ onHamburgerClick }) {
         <Bars3Icon className="h-6 w-6 text-white" />
       </button>
 
-      {/* Nav Links - hidden on mobile */}
+       
       <div className="hidden lg:flex items-center gap-3 px-4">
         {navItems.map((item) => (
           <div key={item.to} className="relative">
@@ -79,12 +79,11 @@ export function TopNavbar({ onHamburgerClick }) {
         ))}
       </div>
 
-      {/* Spacer */}
+      
       <div className="flex-1" />
-
-      {/* Right Side */}
+ 
       <div className="flex items-center gap-3 pr-4">
-        {/* Plan Badge - hidden on mobile */}
+     
         <button
           className="hidden lg:flex items-center justify-center gap-2 rounded-lg border border-[#3F3F46] bg-[#18181B] shadow-sm cursor-pointer hover:bg-[#27272A] transition-colors px-2.5 py-1.5"
         >
@@ -96,19 +95,34 @@ export function TopNavbar({ onHamburgerClick }) {
           </span>
         </button> 
 
-        {/* Desktop: Avatar only (no dropdown) */}
+         
+        <button
+          className="hidden lg:flex items-center justify-center gap-2 rounded-lg bg-[#52525B] shadow-sm cursor-pointer hover:bg-[#3F3F46] transition-colors px-3 py-1.5"
+        >
+          <span className="text-sm font-semibold leading-5 text-white">
+            Upgrade now
+          </span>
+        </button>
+
+   
+        <button
+          className="hidden lg:flex items-center justify-center cursor-pointer bg-transparent border-none"
+        >
+          <BellIcon className="h-5 w-5 text-[#A1A1AA] hover:text-white transition-colors" />
+        </button>
+
+ 
         <div className="hidden lg:block">
           <Avatar className="size-8 bg-zinc-600 text-white cursor-pointer" />
         </div>
-
-        {/* Mobile: Avatar with dropdown containing all nav items */}
+ 
         <div className="lg:hidden">
           <Dropdown>
             <DropdownButton as="button" className="!p-0 !border-none !bg-transparent !rounded-full cursor-pointer">
               <Avatar className="size-8 bg-zinc-600 text-white" />
             </DropdownButton>
             <DropdownMenu anchor="bottom end" className="!p-0 !rounded-xl !overflow-hidden !w-[220px] !flex !flex-col !bg-white !border !border-[#E4E4E7] !shadow-lg">
-              {/* Nav items for mobile */}
+             
               <div className="py-2 px-1 border-b border-[#E4E4E7]">
                 {navItems.map((item) => (
                   <DropdownItem

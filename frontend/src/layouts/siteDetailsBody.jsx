@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Download, MoreHorizontal, MoreVertical } from 'lucide-react'
+import { Loader } from '../component/catalyst-ui/Loader'
 import { Heading } from '../component/catalyst-ui/heading'
 import { Badge } from '../component/catalyst-ui/badge'
 import { HealthScoreCircle } from '../component/catalyst-ui/healthScoreCircle'
@@ -22,7 +23,7 @@ import { FaArrowDown, FaArrowUp, FaChevronRight, FaPlay } from 'react-icons/fa'
 import { BsArrowRepeat } from 'react-icons/bs'
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from '../component/catalyst-ui/dropdown'
 import { ExclamationCircleIcon, ExclamationTriangleIcon, ChevronUpDownIcon} from '@heroicons/react/24/solid'
-import { GlobeAltIcon } from '@heroicons/react/24/outline'
+import { GlobeAltIcon, MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline'
 import CustomPagination from '../component/catalyst-ui/CustomPagination'
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value || 0)
@@ -100,7 +101,7 @@ export default function SiteDetailsBody() {
   const compareCrawlId = useAppStore((s) => s.compareCrawlId)
   const setCompareCrawl = useAppStore((s) => s.setCompareCrawl)
 
-  // Local state for table controls
+ 
   const [activeToggle, setActiveToggle] = useState('actual')
   const [statusFilter, setStatusFilter] = useState('all')
   const [openMenuId, setOpenMenuId] = useState(null)
@@ -191,7 +192,7 @@ export default function SiteDetailsBody() {
       .filter((group) => group.items.length)
   }, [issues])
 
-  // Flatten all issues for pagination
+ 
   const flatIssues = useMemo(() => {
     return groupedIssues.flatMap((group) =>
       group.items.map((item) => ({ ...item, _sectionKey: group.key }))
@@ -201,12 +202,11 @@ export default function SiteDetailsBody() {
   const totalItems = flatIssues.length
   const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
 
-  // Reset to page 1 when issues change
+ 
   useEffect(() => {
     setCurrentPage(1)
   }, [issues.length, pageSize])
-
-  // Paginated & re-grouped issues
+ 
   const paginatedGroupedIssues = useMemo(() => {
     const start = (currentPage - 1) * pageSize
     const pageItems = flatIssues.slice(start, start + pageSize)
@@ -222,8 +222,7 @@ export default function SiteDetailsBody() {
       .filter((key) => grouped[key]?.length)
       .map((key) => ({ key, section: SECTION_CONFIG[key], items: grouped[key] }))
   }, [flatIssues, currentPage, pageSize])
-
-  // Calculate counts for current page only
+ 
   const pageItems = useMemo(() => {
     return paginatedGroupedIssues.flatMap((group) => group.items)
   }, [paginatedGroupedIssues])
@@ -237,26 +236,42 @@ export default function SiteDetailsBody() {
   }, [pageItems])
 
   const handleExportIssues = () => {
-    // Export functionality placeholder
+ 
     console.log('Exporting all issues...')
   }
 
   if (!siteId) {
-    return <div className="p-24">Select a site to view details.</div>
+    return (
+      <div className="flex flex-col items-center justify-center text-center py-32 px-4">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-zinc-100 mb-5">
+          <GlobeAltIcon className="h-8 w-8 text-zinc-400" />
+        </div>
+        <h3 className="text-lg font-semibold text-zinc-950">No site selected</h3>
+        <p className="mt-1 text-sm text-zinc-500 max-w-sm">
+          Select a site from the list to view its crawl details and issues.
+        </p>
+        <Button color="dark" className="mt-5" onClick={() => navigate('/all-sites')}>
+          View all sites
+        </Button>
+      </div>
+    )
   }
 
   if (siteLoading || historyLoading || crawlLoading) {
-    return <div className="p-24">Loading site details...</div>
+    return <Loader text="Loading site details" subtext="Fetching crawl data and issues..." />
   }
 
   if (siteError) {
     return (
-      <div className="p-24">
-        <div className="text-lg font-semibold text-zinc-950">Site not found</div>
-        <div className="mt-2 text-sm text-zinc-500">
-          This site ID does not exist on the server. The backend data resets when the server restarts.
+      <div className="flex flex-col items-center justify-center text-center py-32 px-4">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-5">
+          <ExclamationCircleIcon className="h-8 w-8 text-red-400" />
         </div>
-        <Button className="mt-4" color="dark" onClick={() => navigate('/all-sites')}>
+        <h3 className="text-lg font-semibold text-zinc-950">Site not found</h3>
+        <p className="mt-1 text-sm text-zinc-500 max-w-sm">
+          This site doesn't exist or may have been deleted. The backend data resets when the server restarts.
+        </p>
+        <Button color="dark" className="mt-5" onClick={() => navigate('/all-sites')}>
           Go back to sites
         </Button>
       </div>
@@ -270,16 +285,16 @@ export default function SiteDetailsBody() {
   const crawlDate = latestCrawl?.startedAt ? new Date(latestCrawl.startedAt).toLocaleString() : '-'
   const compareLabel = compareCrawlDetails ? formatCrawlLabel(compareCrawlDetails) : 'None'
 
-  // Extract additional data for enhanced stats
+ 
   const internalPages = crawlDetails?.internalPages ?? Math.floor(urlsCrawled * 0.85)
   const resources = crawlDetails?.resources ?? Math.floor(urlsCrawled * 0.15)
   const pagesWithoutErrors = crawlDetails?.pagesWithoutErrors ?? (internalPages - pagesWithErrors)
   
-  // Calculate health score change
+ 
   const previousHealthScore = compareCrawlDetails?.healthScore ?? crawlHistory[1]?.healthScore ?? healthScore
   const healthScoreChange = healthScore - previousHealthScore
   
-  // Determine health status
+ 
   const getHealthStatus = (score) => {
     if (score >= 80) return { label: 'Good', textClass: 'text-green-600', badgeColor: 'green' }
     if (score >= 50) return { label: 'Moderate', textClass: 'text-yellow-600', badgeColor: 'yellow' }
@@ -377,6 +392,7 @@ export default function SiteDetailsBody() {
                     .filter((crawl) => crawl.id !== activeCrawlId)
                     .map((crawl) => (
                       <DropdownItem
+                        className="font-medium"
                         key={crawl.id}
                         onClick={() => setCompareCrawl(crawl.id)}
                       >
@@ -393,12 +409,12 @@ export default function SiteDetailsBody() {
                 fixCrawlIssues(activeCrawlId)
               }}
               disabled={!activeCrawlId || fixCrawlLoading}
-              className="!w-[180px] !h-[36px] !rounded-[7px] !text-sm !font-medium !bg-[#5C33FF] !flex !justify-center !items-center"
+              className="!w-[180px] !h-[36px] !rounded-[7px]  !font-medium !bg-[#5C33FF] !flex !justify-center !items-center"
             >
               Fix all errors using AI
             </Button>
             <Button
-              className="flex items-center gap-2 border !border-[#E4E4E7] !text-white w-[124px] h-[36px] text-sm font-medium !bg-black !h-[36px] !rounded-[7px] !px-3 !py-2"
+              className="!h-[36px] flex items-center gap-2 border !border-[#E4E4E7] !text-white w-[124px] h-[36px] text-sm font-medium !bg-black !h-[36px] !rounded-[7px] !px-3 !py-2"
               color="dark"
               
               onClick={() => {
@@ -415,7 +431,7 @@ export default function SiteDetailsBody() {
 
 
       <div className="mt-2 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {/* Health Score Card */}
+ 
         <div className="rounded-xl border border-zinc-950/10 bg-white p-5 h-168px w-273px ">
         <div className="flex items-center justify-between">
           <div className="text-14px font-semibold text-#202020">Health score</div>
@@ -429,8 +445,7 @@ export default function SiteDetailsBody() {
             
           </div>
         </div>
-
-        {/* URLs Crawled Card */}
+ 
         <div className="rounded-xl border border-zinc-950/10 bg-white p-5">
         <div className="flex items-center justify-between">
            <div className="text-14px font-semibold text-#202020">URLs crawled</div>
@@ -452,8 +467,7 @@ export default function SiteDetailsBody() {
             </div>
           </div>
         </div>
-
-        {/* Pages Errors Card */}
+ 
         <div className="rounded-xl border border-zinc-950/10 bg-white p-5">
         <div className="flex items-center justify-between">
           <div className="text-14px font-semibold text-#202020">Pages errors</div>
@@ -475,7 +489,7 @@ export default function SiteDetailsBody() {
           </div>
         </div>
 
-        {/* Issues Distribution Card */}
+       
         <div className="rounded-xl border border-zinc-950/10 bg-white p-5">
           <div className="flex items-center justify-between">
             <div className="text-14px font-semibold text-#202020">Issues distribution</div>
@@ -497,55 +511,36 @@ export default function SiteDetailsBody() {
 
       <div className="mt-2">
         
-        {/* Table Controls */}
+      
         <div className=" flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            {/* Toggle Buttons as Labels */}
+ 
             <label
               onClick={() => setActiveToggle('actual')}
-              className={`w-[200px] h-[48px] min-w-[56px] flex !font-sm !text-black
-  items-center
-  justify-center
-  gap-0
-  px-
-  pt-2
-  pb-[14px]
-  rounded-none
-  border-b-2
-  cursor-pointer
-  text-sm
-  font-semibold
-  transition-all
-  duration-300
-  ease-in-out
-  ${activeToggle === 'actual'
-    ? 'border-b-[#09090B] text-[#09090B]'
-    : 'border-b-[#E4E4E7] text-[#A1A1AA]'}
-`}
-            >
+              className={`w-[200px] h-[48px] min-w-[56px] flex !font-sm !text-black items-center justify-center gap-0 px- pt-2 pb-[14px] rounded-none border-b-2 cursor-pointer text-sm font-semibold transition-all duration-300 ease-in-out ${activeToggle === 'actual'   ? 'border-b-[#09090B] text-[#09090B]'   : 'border-b-[#E4E4E7] text-[#A1A1AA]'}`}>
               Actual
               <Badge color="zinc" className="">{formatNumber(actualCount)}</Badge>
             </label>
             <label
               onClick={() => setActiveToggle('new')}
               className={`!w-[104px] !h-[48px] !min-w-[56px] !gap-1 !opacity-100 !pt-2 !pr-4 !pb-[14px] !pl-4 !rounded-none !border-b-2 !flex !items-center !justify-center !cursor-pointer !text-sm !font-medium !transition-all !duration-300 !ease-in-out
-  ${activeToggle === 'new'
-    ? '!border-b-[#09090B] !text-[#09090B] '
-    : '!border-b-[#E4E4E7] !text-[#A1A1AA] '}
-`}
+              ${activeToggle === 'new'
+                ? '!border-b-[#09090B] !text-[#09090B] '
+                : '!border-b-[#E4E4E7] !text-[#A1A1AA] '}
+            `}
             >
               New
               <Badge color="zinc" className="!ml-1">{formatNumber(newCount)}</Badge>
             </label>
 
-            {/* Filter Dropdown */}
+ 
              
             <Select
-  value={statusFilter}
-  onChange={(event) => setStatusFilter(event.target.value)}
-  className="w-[160px] !text-black "
-  selectClassName="h-[36px] w-full !text-black px-4 py-2 rounded-lg border  !border-[#E4E4E7]   "
->
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="w-[160px] !text-black "
+              selectClassName="h-[36px] w-full !text-black px-4 py-2 rounded-lg border  !border-[#E4E4E7]   "
+            >
               <option value="all">All Issues</option>
                <option value="important">Important</option>
                <option value="paused">Paused</option>
@@ -567,21 +562,37 @@ export default function SiteDetailsBody() {
               </div>
               
               {issuesLoading ? (
-                <div className="mt-4 text-sm text-zinc-500">Loading issues...</div>
+                <Loader size="sm" text="Loading issues..." />
               ) : issues.length === 0 ? (
-                <div className="mt-4 text-sm text-zinc-500">No issues found for this crawl.</div>
+                <div className="mt-12 flex flex-col items-center justify-center text-center py-16">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-zinc-50 mb-5">
+                    <MagnifyingGlassIcon className="h-8 w-8 text-black" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-zinc-950">No issues found</h3>
+                  <p className="mt-1 text-sm text-zinc-500 max-w-sm">
+                    Great news! No issues were detected in this crawl. Run a new crawl to check for updates.
+                  </p>
+                  <Button
+                    color="dark"
+                    className="mt-5 !flex !items-center !gap-2"
+                    onClick={() => { if (site?.id) startCrawl(site.id) }}
+                    disabled={!site?.id || startCrawlLoading}
+                  >
+                    <FaPlay size={12} /> Crawl again
+                  </Button>
+                </div>
               ) : (
                 <>
                 <Table dense grid className="">
                 <TableHead >
                   <TableRow className="!bg-[#FAFAFA] text-zinc-950 text-left text-sm font-semibold border border-[#e4e4e7]">
-                  <TableHeader className='border border-[#e4e4e7] text-sm font-semibold'>Issues</TableHeader> 
+                  <TableHeader className='border border-[#e4e4e7] text-sm font-semibold !pl-4'>Issues</TableHeader> 
                   <TableHeader className='border border-[#e4e4e7] text-sm !font-semibold'>Crawled</TableHeader>
                   <TableHeader className='border border-[#e4e4e7] text-sm font-semibold'>Changes</TableHeader>
                   <TableHeader className='border border-[#e4e4e7] text-sm font-semibold'>Added</TableHeader>
                   <TableHeader className='border border-[#e4e4e7] text-sm font-semibold'>New</TableHeader>
                   <TableHeader className='border border-[#e4e4e7] text-sm font-semibold'>Removed</TableHeader>
-                  {/* <TableHeader className="w-16">Actions</TableHeader> */}
+                  
               </TableRow>
             </TableHead>
             <TableBody>

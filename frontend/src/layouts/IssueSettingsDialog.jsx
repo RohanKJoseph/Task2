@@ -19,7 +19,7 @@ export default function IssueSettingsDialog() {
 
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [bulkSeverity, setBulkSeverity] = useState('')
-  const [bulkEnable, setBulkEnable] = useState(null) // null | true | false
+  const [bulkEnable, setBulkEnable] = useState(null)  
 
   function onToggleEnabled(issue) {
     const enabled = !issue.enabled

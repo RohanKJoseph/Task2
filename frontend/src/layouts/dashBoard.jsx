@@ -14,20 +14,20 @@ export function DashboardLayout({ children }) {
           <TopNavbar onHamburgerClick={() => setSidebarOpen(true)} />
         </div>
         <div className="flex h-[calc(100vh-61px)] w-full overflow-hidden">
-          {/* Desktop sidebar - always visible */}
+  
           <div className="hidden lg:block w-64 shrink-0 border-r border-zinc-950/5">
             <AppSidebar />
           </div>
 
-          {/* Mobile sidebar - slide-out drawer */}
+    
           {sidebarOpen && (
             <div className="fixed inset-0 z-50 lg:hidden">
-              {/* Overlay */}
+         
               <div
                 className="fixed inset-0 bg-black/30 transition-opacity"
                 onClick={() => setSidebarOpen(false)}
               />
-              {/* Drawer */}
+        
               <div className="fixed inset-y-0 left-0 w-64 bg-white shadow-xl z-50 flex flex-col">
                 <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-200">
                   <span className="text-sm font-semibold text-zinc-900">Menu</span>

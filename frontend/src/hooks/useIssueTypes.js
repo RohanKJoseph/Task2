@@ -1,5 +1,4 @@
-// src/hooks/useIssueTypes.js
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { issueTypesApi } from '../services/api';
 
 export function useIssueTypes(params = {}) {
