@@ -29,7 +29,7 @@ export function TopNavbar({ onHamburgerClick }) {
 
   return (
     <div className="h-[61px] bg-[#27272A] flex items-center w-full text-white">
-      {/* Brand Logo */}
+      {/* Logo */}
       <button
         type="button"
         onClick={() => {
@@ -37,7 +37,7 @@ export function TopNavbar({ onHamburgerClick }) {
         }}
         className="h-full w-14 flex items-center justify-center border-r border-[#3F3F46] cursor-pointer bg-transparent"
       >
-        <img src="/CodeDesign-brand-lcon.svg" alt="Logo" className="h-9 w-auto" />
+        <img src="/codedesign.svg" alt="Logo" className="h-9 w-auto" />
       </button>
 
       {/* Hamburger menu - mobile only */}
@@ -98,14 +98,14 @@ export function TopNavbar({ onHamburgerClick }) {
 
         {/* Desktop: Avatar only (no dropdown) */}
         <div className="hidden lg:block">
-          <Avatar initials="P" className="size-8 bg-zinc-600 text-white cursor-pointer" />
+          <Avatar className="size-8 bg-zinc-600 text-white cursor-pointer" />
         </div>
 
         {/* Mobile: Avatar with dropdown containing all nav items */}
         <div className="lg:hidden">
           <Dropdown>
             <DropdownButton as="button" className="!p-0 !border-none !bg-transparent !rounded-full cursor-pointer">
-              <Avatar initials="P" className="size-8 bg-zinc-600 text-white" />
+              <Avatar className="size-8 bg-zinc-600 text-white" />
             </DropdownButton>
             <DropdownMenu anchor="bottom end" className="!p-0 !rounded-xl !overflow-hidden !w-[220px] !flex !flex-col !bg-white !border !border-[#E4E4E7] !shadow-lg">
               {/* Nav items for mobile */}

@@ -17,7 +17,7 @@ import {
   ShoppingBagIcon,
   NewspaperIcon
 } from '@heroicons/react/20/solid'
-import { AICreditsCard } from '../component/catalyst-ui/AICreditsCard'
+import { CreditsBox } from '../component/catalyst-ui/CreditsBox'
 
 export function AppSidebar({ onNavigate }) {
   const location = useLocation()
@@ -133,7 +133,7 @@ export function AppSidebar({ onNavigate }) {
 
         {/* AI Credits Card - Fixed at bottom */}
         <div className="flex-shrink-0">
-          <AICreditsCard />
+          <CreditsBox />
         </div>
       </SidebarBody>
     </Sidebar>

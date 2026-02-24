@@ -1,4 +1,4 @@
-export function AICreditsCard() {
+export function CreditsBox() {
   const totalCredits = 200
   const usedCredits = 45
   const remainingCredits = totalCredits - usedCredits
