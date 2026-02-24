@@ -21,6 +21,9 @@ import { FaPlay } from 'react-icons/fa'
 import { MdSettings } from 'react-icons/md'
 import { IoCloseCircle } from 'react-icons/io5'
 import { BsArrowRepeat } from 'react-icons/bs'
+import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from '../component/catalyst-ui/dropdown'
+ 
+import { EllipsisVerticalIcon } from '@heroicons/react/24/solid'
 
 function formatLastCrawlDate(dateString) {
   if (!dateString) return '-';
@@ -40,8 +43,8 @@ function getStatusLabel(status) {
 }
 
 export default function SitesBody() {
-  // FIX 1: Hook must be called INSIDE the component function
-  const { sites, isLoading, startCrawl, stopCrawl } = useSites();
+  
+  const { sites, isLoading, startCrawl, stopCrawl, deleteSite } = useSites();
   const navigate = useNavigate()
   const toggleIssueSettings = useAppStore((s) => s.toggleIssueSettings)
   const toggleAddSite = useAppStore((s) => s.toggleAddSite)
@@ -56,9 +59,9 @@ export default function SitesBody() {
   if (isLoading) return <div className="p-24">Loading sites...</div>
 
   return (
-    <div className="w-full max-w-none pl-8 pr-6 bg-white">
+    <div className="w-full max-w-none sm:pl-8 sm:pr-6 bg-white">
       {/* --- Header Section --- */}
-      <div className="flex items-end justify-between bg-white">
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between bg-white gap-2">
         <div className="">
           <h2 className="text-2xl font-bold text-zinc-950">Sites</h2>
           <div className="mt-4 flex items-center gap-3">
@@ -71,97 +74,61 @@ export default function SitesBody() {
               />
               <Input
                 placeholder="Search Sites"
-                className="!border !text-black rounded-md !border-[#e4e4e7] shadow-[0_1px_2px_0_#0000000] !w-[432px]"
+                className="!border !text-black rounded-md !border-[#e4e4e7] shadow-[0_1px_2px_0_#0000000] !w-[300px] sm:!w-[432px]"
               />
             </InputGroup>
           </div>
         </div>
         
-        <div className="flex items-center gap-3">
-          <Button className="p-2 flex items-center gap-2" color="white" style={{
-            border: '1px solid #09090B1A',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            width: '144px',
-            height: '36px',
-            borderRadius: '7px'
-          }} onClick={() => toggleIssueSettings(true)}>
-            <MdSettings className="text-gray-500" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <Button className="!p-2 !flex !items-center !gap-2 !border !border-[#09090B1A] !shadow-sm !w-[144px] !h-[36px] !rounded-[7px] whitespace-nowrap" color="white" onClick={() => toggleIssueSettings(true)}>
+            <MdSettings className="text-gray-500 scale-150 sm:scale-100" />
             Issue Settings
           </Button>
-          <Button color="dark" style={{
-            width: '144px',
-            height: '36px',
-            borderRadius: '7px'
-          }} onClick={() => toggleAddSite(true)}>
-            <IoMdAdd /> Add New Site
+          <Button color="dark" className="!w-[144px] !h-[36px] !rounded-[7px] !flex !items-center !gap-2 whitespace-nowrap" onClick={() => toggleAddSite(true)}>
+            <IoMdAdd className='!scale-200 sm:!scale-100' /> Add New Site
           </Button>
         </div>
       </div>
 
       {/* Table Section */}
-      <Table className="mt-8 bg-white">
-        <TableHead style={{ paddingLeft: '1rem', paddingRight: '1rem',color: '#71717B' }}>
-          <TableRow style={{ height: '40.5px' }}>
-            <TableHeader style={{ width: '290px' }}>Site</TableHeader>
-            <TableHeader style={{ width: '130px' }}>Last crawl</TableHeader>
-            <TableHeader style={{ width: '130px' }}>Status</TableHeader>
-            <TableHeader style={{ width: '130px' }}>Health score</TableHeader>
-            <TableHeader style={{ width: '130px' }}>URL Crawled</TableHeader>
-            <TableHeader style={{ width: '130px' }}>URLs having errors</TableHeader>
-            <TableHeader style={{ width: '130px' }} />
+      <Table dense className="mt-4 bg-white">
+        <TableHead className="!px-4 !text-[#71717B]">
+          <TableRow className="!h-[40.5px]">
+            <TableHeader className="!w-[290px]">Site</TableHeader>
+            <TableHeader className="!w-[130px]">Last crawl</TableHeader>
+            <TableHeader className="!w-[130px]">Status</TableHeader>
+            <TableHeader className="!w-[130px]">Health score</TableHeader>
+            <TableHeader className="!w-[130px]">URL Crawled</TableHeader>
+            <TableHeader className="!w-[130px]">URLs having errors</TableHeader>
+            <TableHeader className="!w-[130px]" />
           </TableRow>
         </TableHead>
         <TableBody>
           {sites.map(site => (
-            <TableRow key={site.id} style={{ borderTop: '2px solid #E4E4E7', borderBottom: '2px solid #E4E4E7' }}>
-              {/* FIX 2: Ensure Ta  bleCell count matches TableHeader count */}
-              <TableCell className="font-medium">
-                <div className='flex items-center gap-2'>
-                  <img src="/p1img.png" alt="site-icon" style={{ width: '72px', height: '48px', borderRadius: '4px', border: '1px solid #E4E4E7' }} />
+            <TableRow key={site.id} className="!border-y-2 !border-[#E4E4E7]">
+          
+              <TableCell className="font-medium !w-[290px]" style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
+                <div className='flex items-center gap-2 w-[100px] sm:w-[290px]'>
+                  <img src="/p1img.png" alt="site-icon" className="!w-[56px] !h-[36px] !rounded !border !border-[#E4E4E7]" />
                   <div>
                     <div
-                      className='text-stone-800'
-                      style={{
-                        fontFamily: 'Inter, sans-serif',
-                        fontWeight: 400,
-                        fontSize: '14px',
-                        lineHeight: '24px',
-                        letterSpacing: '0%',
-                        verticalAlign: 'middle'
-                      }}
+                      className='!text-stone-800 !font-[Inter,sans-serif] !font-normal !text-sm !leading-6 !tracking-normal !align-middle'
                     >
                       {site.name}
                     </div>
-                    {/* <div className="text-xs text-zinc-500">{site.url}</div> */}
+                  
                     <button
                       type="button"
                       onClick={() => handleOpenSite(site.id)}
-                      style={{
-
-                        fontWeight: 500,
-                        fontSize: '14px',
-                        lineHeight: '24px',
-                        letterSpacing: '0%',
-                        verticalAlign: 'middle',
-                        textDecorationLine: 'underline',
-                        textDecorationStyle: 'solid',
-                        textDecorationOffset: '0px',
-                        textDecorationThickness: '0px',
-                        textDecorationSkipInk: 'auto',
-                        color: '#000',
-                        background: 'none',
-                        border: 'none',
-                        padding: 0,
-                        marginTop: '4px',
-                        cursor: 'pointer'
-                      }}
+                      className="!font-medium !text-sm !leading-6 !tracking-normal !align-middle !underline !text-black !bg-transparent !border-none !p-0 !mt-1 !cursor-pointer"
                     >
                       Open
                     </button>
                   </div>
                 </div>
               </TableCell>
-              <TableCell className="text-zinc-500">
+              <TableCell className="text-zinc-500" style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
                 {formatLastCrawlDate(site.lastCrawl)}
               </TableCell>
               <TableCell>
@@ -174,20 +141,13 @@ export default function SitesBody() {
                   {getStatusLabel(site.status)}
                 </Badge>
               </TableCell>
-              <TableCell className='!scale-70 -ml-6 !flex !items-center'>
+              <TableCell className='!scale-70 -ml-6 !flex !items-center' style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
                 <HealthScoreCircle score={site.healthScore ?? 0} />
               </TableCell>
 
               <TableCell
-                className="text-zinc-500"
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontWeight: 400,
-                  fontSize: '14px',
-                  lineHeight: '24px',
-                  letterSpacing: '0%',
-                  verticalAlign: 'middle'
-                }}
+                className="!text-zinc-500 !font-[Inter,sans-serif] !font-normal !text-sm !leading-6 !tracking-normal !align-middle"
+                style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}
               > 
                 {site.urlsCrawled == null
                   ? '-'
@@ -201,69 +161,42 @@ export default function SitesBody() {
           
                    </TableCell>
 
-              <TableCell className="text-red-600 font-medium ">{site.errorsCount}</TableCell>
-              <TableCell className="text-right">
+              <TableCell className="text-red-600 font-medium" style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>{site.errorsCount}</TableCell>
+              <TableCell className="text-right" style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
                 <div className="flex items-center justify-end gap-2">
                   {site.status === 'crawling' ? (
-                    <Button className="flex items-center gap-2" color="white" style={{
-            border: '1px solid #09090B1A',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            width: '140px',
-            height: '36px',
-            borderRadius: '7px',
-            padding: '8px 12px'
-          }} onClick={() => stopCrawl(site.id)}>
+                    <Button className="!flex !items-center !gap-2 !border !border-[#09090B1A] !shadow-sm !w-[140px] !h-[36px] !rounded-[7px] !px-3 !py-2" color="white" onClick={() => stopCrawl(site.id)}>
                       <IoCloseCircle size={16} />
                       Stop Crawling
                     </Button>
                   ) : site.status === 'failed' ? (
-                    <Button className="flex items-center gap-2" color="white" style={{
-            border: '1px solid #09090B1A',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            width: '160px',
-            height: '36px',
-            borderRadius: '7px',
-            padding: '8px 12px'
-          }} onClick={() => startCrawl(site.id)}>
+                    <Button className="!flex !items-center !gap-2 !border !border-[#09090B1A] !shadow-sm !w-[160px] !h-[36px] !rounded-[7px] !px-3 !py-2" color="white" onClick={() => startCrawl(site.id)}>
                       <BsArrowRepeat size={16} className="text-red-600" />
                       <span className="text-red-600">Try Crawling Again</span>
                     </Button>
                   ) : (
-                    <Button className="flex items-center gap-2" color="white" style={{
-            border: '1px solid #09090B1A',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-            width: '116px',
-            height: '36px',
-            borderRadius: '7px',
-            padding: '8px 12px'
-          }} onClick={() => startCrawl(site.id)}>
+                    <Button className="!flex !items-center !gap-2 !border !border-[#09090B1A] !shadow-sm !w-[116px] !h-[36px] !rounded-[7px] !px-3 !py-2" color="white" onClick={() => startCrawl(site.id)}>
                       <FaPlay size={14} />
                       Crawl now
                     </Button>
                   )}
-                  <button
-                    type="button"
-                    aria-label="Row options"
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      padding: '10px',
-                      borderRadius: '8px',
-                      opacity: 1,
-                      background: 'transparent',
-                      border: '1px solid transparent',
-                      color: '#71717B',
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <svg width="4" height="16" viewBox="0 0 4 16" fill="currentColor" aria-hidden="true">
-                      <circle cx="2" cy="2" r="2" />
-                      <circle cx="2" cy="8" r="2" />
-                      <circle cx="2" cy="14" r="2" />
-                    </svg>
-                  </button>
+                  <Dropdown>
+                    <DropdownButton
+                      as="button"
+                      aria-label="Row options"
+                      className="!w-[36px] !h-[36px] !p-2.5 !rounded-lg !bg-transparent !border !border-transparent !text-[#71717B] !inline-flex !items-center !justify-center"
+                    >
+                      <EllipsisVerticalIcon className="!h-6 !w-6 !stroke-[2.5] !cursor-pointer hover:!text-zinc-900 transition-colors scale-150" />
+                    </DropdownButton>
+                    <DropdownMenu anchor="bottom end" className="!w-[160px] !bg-white !border !border-[#E4E4E7] !shadow-lg rounded-lg ">
+                      <DropdownItem onClick={() => handleOpenSite(site.id)} className="!text-sm !font-medium !text-zinc-700 hover:!bg-gray-100  !cursor-pointer">
+                        Open
+                      </DropdownItem>
+                      <DropdownItem onClick={() => deleteSite(site.id)} className="!text-sm !font-medium !text-red-600 hover:!bg-red-100/50  !cursor-pointer">
+                        Delete
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
                 </div>
               </TableCell>
             </TableRow>

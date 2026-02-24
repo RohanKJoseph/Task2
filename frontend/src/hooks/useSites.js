@@ -32,10 +32,16 @@ export function useSites() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sites'] })
   });
 
+  const deleteSite = useMutation({
+    mutationFn: (siteId) => sitesApi.delete(siteId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sites'] })
+  });
+
   return {
     sites: query.data || [],
     isLoading: query.isLoading,
     startCrawl: startCrawl.mutate,
-    stopCrawl: stopCrawl.mutate
+    stopCrawl: stopCrawl.mutate,
+    deleteSite: deleteSite.mutate
   };
 }

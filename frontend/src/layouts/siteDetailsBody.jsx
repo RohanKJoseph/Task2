@@ -17,14 +17,13 @@ import {
 import { useSite } from '../hooks/useSite'
 import { useCrawlDetails, useCrawlHistory, useCrawlIssues, useFixCrawlIssues, useStartCrawl } from '../hooks/useCrawls'
 import { useAppStore } from '../stores/useAppStore'
-import { CiGlobe } from 'react-icons/ci'
+ 
 import { FaArrowDown, FaArrowUp, FaChevronRight, FaPlay } from 'react-icons/fa'
-import { RiErrorWarningFill } from 'react-icons/ri'
-import { IoWarning } from 'react-icons/io5'
-import { MdInfoOutline } from 'react-icons/md'
-import { Label } from '@headlessui/react'
+import { BsArrowRepeat } from 'react-icons/bs'
 import { Dropdown, DropdownButton, DropdownMenu, DropdownItem } from '../component/catalyst-ui/dropdown'
-import { ExclamationCircleIcon, ExclamationTriangleIcon, ChevronUpDownIcon } from '@heroicons/react/24/solid'
+import { ExclamationCircleIcon, ExclamationTriangleIcon, ChevronUpDownIcon} from '@heroicons/react/24/solid'
+import { GlobeAltIcon } from '@heroicons/react/24/outline'
+import CustomPagination from '../component/catalyst-ui/CustomPagination'
 
 const formatNumber = (value) => new Intl.NumberFormat().format(value || 0)
 const formatCrawlLabel = (crawl) => {
@@ -105,6 +104,8 @@ export default function SiteDetailsBody() {
   const [activeToggle, setActiveToggle] = useState('actual')
   const [statusFilter, setStatusFilter] = useState('all')
   const [openMenuId, setOpenMenuId] = useState(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   const siteId = paramSiteId || selectedSiteId
 
@@ -190,14 +191,50 @@ export default function SiteDetailsBody() {
       .filter((group) => group.items.length)
   }, [issues])
 
-  // Calculate counts for toggles
+  // Flatten all issues for pagination
+  const flatIssues = useMemo(() => {
+    return groupedIssues.flatMap((group) =>
+      group.items.map((item) => ({ ...item, _sectionKey: group.key }))
+    )
+  }, [groupedIssues])
+
+  const totalItems = flatIssues.length
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+
+  // Reset to page 1 when issues change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [issues.length, pageSize])
+
+  // Paginated & re-grouped issues
+  const paginatedGroupedIssues = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    const pageItems = flatIssues.slice(start, start + pageSize)
+
+    const grouped = {}
+    pageItems.forEach((item) => {
+      const key = item._sectionKey
+      if (!grouped[key]) grouped[key] = []
+      grouped[key].push(item)
+    })
+
+    return SECTION_ORDER
+      .filter((key) => grouped[key]?.length)
+      .map((key) => ({ key, section: SECTION_CONFIG[key], items: grouped[key] }))
+  }, [flatIssues, currentPage, pageSize])
+
+  // Calculate counts for current page only
+  const pageItems = useMemo(() => {
+    return paginatedGroupedIssues.flatMap((group) => group.items)
+  }, [paginatedGroupedIssues])
+
   const actualCount = useMemo(() => {
-    return issues.reduce((sum, issue) => sum + (issue.crawledCount ?? issue.count ?? 0), 0)
-  }, [issues])
+    return pageItems.reduce((sum, issue) => sum + (issue.crawledCount ?? issue.count ?? 0), 0)
+  }, [pageItems])
 
   const newCount = useMemo(() => {
-    return issues.reduce((sum, issue) => sum + (issue.new ?? 0), 0)
-  }, [issues])
+    return pageItems.reduce((sum, issue) => sum + (issue.new ?? 0), 0)
+  }, [pageItems])
 
   const handleExportIssues = () => {
     // Export functionality placeholder
@@ -284,7 +321,7 @@ export default function SiteDetailsBody() {
      
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <CiGlobe className='text-zinc-500 font-bold' />
+            <GlobeAltIcon className='text-zinc-500 !h-5 !w-5 !stroke-[2.5] cursor-pointer hover:text-zinc-700' onClick={() => navigate('/')} />
             <FaChevronRight className='text-zinc-500' />
             <div className="text-lg font-semibold text-zinc-950">{site?.name || 'Site'}</div>
           </div>
@@ -351,24 +388,17 @@ export default function SiteDetailsBody() {
             </div>
             <Button
               color="blue"
-              style={{ 
-                width: '180px', 
-                height: '36px', 
-                borderRadius: '7px',  
-                fontSize: '14px',
-                fontWeight: 500,
-              }}
               onClick={() => {
                 if (!activeCrawlId) return
                 fixCrawlIssues(activeCrawlId)
               }}
               disabled={!activeCrawlId || fixCrawlLoading}
-              className="!bg-[#5C33FF] !flex !justify-center !items-center"
+              className="!w-[180px] !h-[36px] !rounded-[7px] !text-sm !font-medium !bg-[#5C33FF] !flex !justify-center !items-center"
             >
               Fix all errors using AI
             </Button>
             <Button
-              className="flex items-center gap-2 border !border-[#E4E4E7] !text-black w-[124px] h-[36px] text-sm font-medium !bg-white "
+              className="flex items-center gap-2 border !border-[#E4E4E7] !text-white w-[124px] h-[36px] text-sm font-medium !bg-black !h-[36px] !rounded-[7px] !px-3 !py-2"
               color="dark"
               
               onClick={() => {
@@ -414,35 +444,33 @@ export default function SiteDetailsBody() {
           <div className="mt-3 flex flex-col gap-1 text-sm">
             <div className="flex justify-between text-zinc-500 border-b border-zinc-200 pb-1">
               <span>Internal page</span>
-              <span className="font-medium-500 size-14px text-zinc-950">{formatNumber(internalPages)}</span>
+              <span className="font-medium text-zinc-950">{formatNumber(internalPages)}</span>
             </div>
             <div className="flex justify-between text-zinc-500">
               <span>Resources</span>
-              <span className="font-medium  text-zinc-950">{formatNumber(resources)}</span>
+              <span className="font-medium text-zinc-950">{formatNumber(resources)}</span>
             </div>
           </div>
         </div>
 
         {/* Pages Errors Card */}
-        <div className="rounded-xl border border-zinc-950/10 bg-white p-5 pl-8">
+        <div className="rounded-xl border border-zinc-950/10 bg-white p-5">
         <div className="flex items-center justify-between">
-          <div className="text-14px font-semibold text-#202020 ">Pages errors</div>
+          <div className="text-14px font-semibold text-#202020">Pages errors</div>
           <Badge color="red" className="mt-1 flex items-center gap-1">
             {pagesWithErrorsChangePercent >= 0 ? <FaArrowUp size={12} /> : <FaArrowDown size={12} />}
             {Math.abs(Math.round(pagesWithErrorsChangePercent))}%
           </Badge>
         </div>
-          <div className="mt-3  text-4xl font-semibold text-zinc-950">{formatNumber(pagesWithErrors)}</div>
+          <div className="mt-3 text-4xl font-semibold text-zinc-950">{formatNumber(pagesWithErrors)}</div>
           <div className="mt-3 flex flex-col gap-1 text-sm">
             <div className="flex justify-between text-zinc-500 border-b border-zinc-200 pb-1">
               <span>With errors:</span>
-              <span className="!font-medium size-14px text-zinc-950">{formatNumber(pagesWithErrors)}</span>
+              <span className="font-medium text-zinc-950">{formatNumber(pagesWithErrors)}</span>
             </div>
             <div className="flex justify-between text-zinc-500">
               <span>Without errors:</span>
-              <span className="!font-medium size-14px text-zinc-950" style={{
-              fontWeight:"500"
-              }}>{formatNumber(pagesWithoutErrors)}</span>
+              <span className="font-medium text-zinc-950">{formatNumber(pagesWithoutErrors)}</span>
             </div>
           </div>
         </div>
@@ -475,7 +503,7 @@ export default function SiteDetailsBody() {
             {/* Toggle Buttons as Labels */}
             <label
               onClick={() => setActiveToggle('actual')}
-              className={`w-[104px] h-[48px] min-w-[56px] flex !font-sm !text-black
+              className={`w-[200px] h-[48px] min-w-[56px] flex !font-sm !text-black
   items-center
   justify-center
   gap-0
@@ -496,37 +524,18 @@ export default function SiteDetailsBody() {
 `}
             >
               Actual
-              <Badge color="zinc" className="">33</Badge>
+              <Badge color="zinc" className="">{formatNumber(actualCount)}</Badge>
             </label>
             <label
               onClick={() => setActiveToggle('new')}
-              style={{
-                width: '104px',
-                height: '48px',
-                minWidth: '56px',
-                gap: '4px',
-                opacity: 1,
-                paddingTop: '8px',
-                paddingRight: '16px',
-                paddingBottom: '14px',
-                paddingLeft: '16px',
-                borderRadius: '0px',
-                borderBottomWidth: '2px',
-                borderBottomColor: activeToggle === 'new' ? '#09090B' : '#E4E4E7',
-                display: 'flex',
-              
-                alignItems: 'center',
-                justifyContent: 'center',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 500,
-                color: activeToggle === 'new' ? '#09090B' : '#A1A1AA',
-                backgroundColor: activeToggle === 'new' ? 'transparent' : '#A1A1AA1A',
-                transition: 'all 0.3s ease'
-              }}
+              className={`!w-[104px] !h-[48px] !min-w-[56px] !gap-1 !opacity-100 !pt-2 !pr-4 !pb-[14px] !pl-4 !rounded-none !border-b-2 !flex !items-center !justify-center !cursor-pointer !text-sm !font-medium !transition-all !duration-300 !ease-in-out
+  ${activeToggle === 'new'
+    ? '!border-b-[#09090B] !text-[#09090B] '
+    : '!border-b-[#E4E4E7] !text-[#A1A1AA] '}
+`}
             >
               New
-              <span className="text-[#71717B] text-xs mt-1 ml-1">{formatNumber(newCount)}</span>
+              <Badge color="zinc" className="!ml-1">{formatNumber(newCount)}</Badge>
             </label>
 
             {/* Filter Dropdown */}
@@ -545,7 +554,7 @@ export default function SiteDetailsBody() {
                 </Select>
           </div>
 
-        {  /* Export Button */}
+ 
                 
                 <Button
                 outline
@@ -562,6 +571,7 @@ export default function SiteDetailsBody() {
               ) : issues.length === 0 ? (
                 <div className="mt-4 text-sm text-zinc-500">No issues found for this crawl.</div>
               ) : (
+                <>
                 <Table dense grid className="">
                 <TableHead >
                   <TableRow className="!bg-[#FAFAFA] text-zinc-950 text-left text-sm font-semibold border border-[#e4e4e7]">
@@ -575,16 +585,16 @@ export default function SiteDetailsBody() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {groupedIssues.map((group) => (
+              {paginatedGroupedIssues.map((group) => (
                 <Fragment key={`${group.key}-group`}>
                   <TableRow key={`${group.key}-header`}>
-                    <TableCell colSpan={7} style={{ border: '1px solid #E4E4E7' }} className={`${group.section.bg} text-xs font-semibold uppercase tracking-wide ${group.section.text}`}>
+                    <TableCell colSpan={7} className={`${group.section.bg} text-xs font-semibold uppercase tracking-wide ${group.section.text} !border !border-[#E4E4E7]`}>
                       {group.section.label}
                     </TableCell>
                   </TableRow>
                   {group.items.map((issue) => (
                     <TableRow key={issue.id}>
-                      <TableCell style={{ border: '1px solid #E4E4E7', paddingLeft: '5px' }} className="font-medium text-zinc-950">
+                      <TableCell className="font-medium text-zinc-950 !border !border-[#E4E4E7] !pl-[5px]">
                         <div className="flex items-center gap-2 pl-5">
                           {issue.severity === 'error' && <ExclamationCircleIcon  className="text-red-600  w-5 h-5" />}
                           {issue.severity === 'warning' && <ExclamationTriangleIcon  className="text-yellow-600  w-5 h-5" />}
@@ -616,7 +626,7 @@ export default function SiteDetailsBody() {
                             <MoreHorizontal className="size-4 text-zinc-600" />
                           </button>
                           
-                          {/* Dropdown Menu */}
+                        
                           {openMenuId === issue.id && (
                             <div className="absolute right-0 z-10 mt-1 w-48 rounded-lg border border-zinc-200 bg-white shadow-lg">
                               <div className="py-1">
@@ -630,7 +640,7 @@ export default function SiteDetailsBody() {
                                   Billing
                                 </button>
                                 
-                                {/* Submenu for My Events */}
+                                
                                 <div className="border-t border-zinc-200">
                                   <div className="px-4 py-2 text-xs font-semibold text-zinc-500 uppercase">
                                     My Events
@@ -653,6 +663,16 @@ export default function SiteDetailsBody() {
               ))}
             </TableBody>
           </Table>
+          <CustomPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            pageSize={pageSize}
+            totalItems={totalItems}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={setPageSize}
+            className="mt-4 px-2"
+          />
+        </>
         )}
       </div>
     </div>

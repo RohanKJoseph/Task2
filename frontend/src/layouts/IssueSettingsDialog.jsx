@@ -67,9 +67,9 @@ export default function IssueSettingsDialog() {
   }
 
   return (
-    <Dialog open={open} onClose={() => toggle(false)} size="lg">
-      <DialogTitle>Issue settings</DialogTitle>
-      <DialogDescription>Manage which issue types are reported and their severity.</DialogDescription>
+    <Dialog open={open} onClose={() => toggle(false)} size="lg" className="!bg-white !text-black">
+      <DialogTitle className="!text-lg !font-bold !text-zinc-900">Issue settings</DialogTitle>
+      <DialogDescription className="!text-black">Manage which issue types are reported and their severity.</DialogDescription>
 
       <DialogBody>
         {isLoading && <div className="p-6">Loading issue types...</div>}
@@ -79,18 +79,18 @@ export default function IssueSettingsDialog() {
           <>
             <div className="flex items-center gap-3 mb-4">
               <div className="flex items-center gap-2">
-                <Checkbox checked={selectedIds.size === issueTypes.length && issueTypes.length > 0} onChange={selectAll} />
-                <div className="text-sm text-zinc-600">Select all</div>
+                <Checkbox checked={selectedIds.size === issueTypes.length && issueTypes.length > 0} onChange={selectAll}  />
+                <div className="text-sm text-zinc-600 ">Select all</div>
               </div>
 
-              <Select value={bulkSeverity} onChange={(e) => setBulkSeverity(e.target.value)} selectClassName="text-sm w-40">
+              <Select value={bulkSeverity} onChange={(e) => setBulkSeverity(e.target.value)} selectClassName="text-sm w-40 !text-black" className="border !border-[#e4e4e7] shadow-[0_1px_2px_0_#0000000] rounded-md">
                 <option value="">-- Set severity --</option>
                 <option value="error">Error</option>
                 <option value="warning">Warning</option>
                 <option value="notice">Notice</option>
               </Select>
 
-              <Select value={bulkEnable === null ? '' : bulkEnable ? 'enable' : 'disable'} onChange={(e) => setBulkEnable(e.target.value === '' ? null : e.target.value === 'enable')} selectClassName="text-sm w-36">
+              <Select value={bulkEnable === null ? '' : bulkEnable ? 'enable' : 'disable'} onChange={(e) => setBulkEnable(e.target.value === '' ? null : e.target.value === 'enable')} selectClassName="text-sm w-36 !text-black" className="border !border-[#e4e4e7] shadow-[0_1px_2px_0_#0000000] rounded-md !text-black">
                 <option value="">-- Set enabled --</option>
                 <option value="enable">Enable</option>
                 <option value="disable">Disable</option>
@@ -115,7 +115,7 @@ export default function IssueSettingsDialog() {
 
               <TableBody>
                 {issueTypes.map(issue => (
-                  <TableRow key={issue.id}>
+                  <TableRow key={issue.id} className="!text-zinc-700">
                     <TableCell>
                       <Checkbox checked={selectedIds.has(issue.id)} onChange={(v) => toggleSelect(issue.id, v)} />
                     </TableCell>
